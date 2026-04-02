@@ -3,1362 +3,594 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-<title>Learning with Chipmunk 🐿️</title>
+<title>Learning with Chipmunk!</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;overflow-x:hidden}
-#header{background:linear-gradient(90deg,#FF6B9D,#FFD93D,#6BCB77,#4ECDC4,#9B59B6);background-size:400% 400%;animation:rainbow 4s ease infinite;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 15px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
 @keyframes rainbow{0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes fall{0%{top:-10px;opacity:1}100%{top:110vh;opacity:0}}
 @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
+#header{background:linear-gradient(90deg,#FF6B9D,#FFD93D,#6BCB77,#4ECDC4,#9B59B6);background-size:400% 400%;animation:rainbow 4s ease infinite;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 15px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
 #header h1{font-size:clamp(16px,4vw,24px);color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,.4)}
-#score-display{background:#fff;border-radius:20px;padding:6px 14px;font-size:clamp(12px,3vw,16px);font-weight:700;color:#764ba2;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-#chipmunk-mascot{font-size:clamp(28px,6vw,48px);animation:bounce 1s infinite;cursor:pointer}
-#main-menu{display:flex;flex-direction:column;align-items:center;padding:20px;gap:16px}
-#main-menu h2{font-size:clamp(20px,5vw,36px);color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,.4);text-align:center;margin-bottom:8px}
-.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:600px}
-.menu-btn{background:#fff;border-radius:20px;padding:18px 12px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.18);transition:transform .2s,box-shadow .2s;border:4px solid transparent;user-select:none}
-.menu-btn:active{transform:scale(.95)}
-.menu-btn:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 12px 40px rgba(0,0,0,.25)}
-.menu-btn .icon{font-size:clamp(32px,8vw,52px);display:block;margin-bottom:8px}
-.menu-btn .label{font-size:clamp(13px,3.5vw,18px);font-weight:700;color:#333}
-.menu-btn.reading{border-color:#FF6B9D}.menu-btn.math{border-color:#FFD93D}.menu-btn.history{border-color:#FF8C42}.menu-btn.ai{border-color:#9B59B6}.menu-btn.drawing{border-color:#6BCB77}
+#score-display{background:#fff;border-radius:20px;padding:6px 14px;font-size:clamp(12px,3vw,16px);font-weight:700;color:#764ba2}
+#chipmunk{font-size:clamp(28px,6vw,48px);animation:bounce 1s infinite;cursor:pointer;transition:transform .3s}
 .screen{display:none;flex-direction:column;align-items:center;padding:16px;min-height:calc(100vh - 70px)}
 .screen.active{display:flex}
 .card{background:rgba(255,255,255,.95);border-radius:24px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.18);width:100%;max-width:680px;margin-bottom:16px}
-.screen-title{font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center}
-.back-btn{background:#fff;border:3px solid #764ba2;color:#764ba2;border-radius:30px;padding:8px 20px;font-size:15px;font-family:inherit;cursor:pointer;font-weight:700;margin-bottom:12px;align-self:flex-start;box-shadow:0 3px 8px rgba(0,0,0,.15)}
-.back-btn:active{transform:scale(.95)}
+.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:600px}
+.menu-btn{background:#fff;border-radius:20px;padding:18px 12px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.18);transition:transform .2s;border:4px solid transparent}
+.menu-btn:active,.menu-btn:hover{transform:scale(1.03)}
+.menu-btn .icon{font-size:clamp(32px,8vw,52px);display:block;margin-bottom:8px}
+.menu-btn .label{font-size:clamp(13px,3.5vw,18px);font-weight:700;color:#333}
+.menu-btn.reading{border-color:#FF6B9D}.menu-btn.math{border-color:#FFD93D}.menu-btn.history{border-color:#FF8C42}.menu-btn.ai{border-color:#9B59B6}.menu-btn.drawing{border-color:#6BCB77}
+.back-btn{background:#fff;border:3px solid #764ba2;color:#764ba2;border-radius:30px;padding:8px 20px;font-size:15px;font-family:inherit;cursor:pointer;font-weight:700;margin-bottom:12px;align-self:flex-start}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px}
-.choice-btn{background:linear-gradient(135deg,#f6f7fa,#e9ecf1);border:3px solid #ccc;border-radius:16px;padding:14px 8px;font-size:clamp(14px,4vw,20px);font-family:inherit;cursor:pointer;transition:all .2s;font-weight:700;color:#333;box-shadow:0 3px 8px rgba(0,0,0,.1)}
-.choice-btn:active{transform:scale(.95)}
-.choice-btn.correct{background:linear-gradient(135deg,#6BCB77,#4CAF50);border-color:#388e3c;color:#fff;transform:scale(1.05)}
+.choice-btn{background:linear-gradient(135deg,#f6f7fa,#e9ecf1);border:3px solid #ccc;border-radius:16px;padding:14px 8px;font-size:clamp(14px,4vw,20px);font-family:inherit;cursor:pointer;font-weight:700;color:#333}
+.choice-btn.correct{background:linear-gradient(135deg,#6BCB77,#4CAF50);border-color:#388e3c;color:#fff}
 .choice-btn.wrong{background:linear-gradient(135deg,#ff6b6b,#e53935);border-color:#c62828;color:#fff}
-.choice-btn:hover:not(.correct):not(.wrong){background:linear-gradient(135deg,#FFD93D,#FFC107);border-color:#FF8C42}
-.question-box{background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;padding:20px;text-align:center;color:#fff;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.question-box{background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;padding:20px;text-align:center;color:#fff;margin-bottom:16px}
 .question-sub{font-size:clamp(12px,3vw,16px);margin-top:8px;opacity:.9}
-#feedback-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;pointer-events:none;transition:transform .3s;font-size:clamp(40px,12vw,80px);text-align:center}
-#feedback-overlay.show{transform:translate(-50%,-50%) scale(1)}
+#feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;pointer-events:none;transition:transform .3s;font-size:clamp(40px,12vw,80px)}
+#feedback.show{transform:translate(-50%,-50%) scale(1)}
 .progress-wrap{background:rgba(255,255,255,.3);border-radius:10px;height:14px;width:100%;margin-bottom:12px;overflow:hidden}
 .progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#6BCB77,#FFD93D);transition:width .4s}
-.letter-display{font-size:clamp(60px,18vw,120px);font-weight:700;text-align:center;padding:20px;line-height:1}
-.vowel{color:#FF6B9D}.consonant{color:#4ECDC4}
-.sentence-display{font-size:clamp(16px,4vw,24px);text-align:center;padding:10px;line-height:1.6}
-.math-display{font-size:clamp(32px,9vw,64px);font-weight:700;text-align:center;padding:16px;color:#333}
-.math-objects{font-size:clamp(24px,7vw,48px);text-align:center;letter-spacing:4px;margin:8px 0}
-.history-person{font-size:clamp(40px,10vw,64px);text-align:center;margin:8px 0}
-.history-name{font-size:clamp(18px,5vw,28px);font-weight:700;color:#764ba2;text-align:center}
-.history-fact{font-size:clamp(13px,3.5vw,18px);line-height:1.7;text-align:center;padding:8px;color:#333}
-.ai-scenario{background:linear-gradient(135deg,#9B59B6,#6c3483);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px;font-size:clamp(14px,3.5vw,18px);line-height:1.7}
-#draw-canvas{border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.18);touch-action:none;cursor:crosshair;max-width:100%;display:block}
-.color-palette{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
-.color-swatch{width:clamp(28px,6vw,40px);height:clamp(28px,6vw,40px);border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .2s,border-color .2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-.color-swatch.active{border-color:#333;transform:scale(1.25)}
-.brush-sizes{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0}
-.brush-btn{width:36px;height:36px;border-radius:50%;border:2px solid #999;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.brush-btn.active{border-color:#764ba2;background:#f3e5ff}
-.draw-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.draw-btn{background:#fff;border:2px solid #ccc;border-radius:12px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;transition:all .2s}
-.draw-btn:active{transform:scale(.95)}
-.draw-word-prompt{font-size:clamp(16px,4vw,22px);font-weight:700;text-align:center;color:#764ba2;background:#f3e5ff;border-radius:12px;padding:10px 16px;margin-bottom:8px}
-.voice-btn{background:linear-gradient(135deg,#FF6B9D,#ff4081);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(255,64,129,.4);transition:all .2s;display:inline-flex;align-items:center;justify-content:center}
-.voice-btn:active{transform:scale(.9)}
+.big-letter{font-size:clamp(60px,18vw,120px);font-weight:700;text-align:center;padding:20px;line-height:1}
+.vowel-style{color:#FF6B9D}.cons-style{color:#4ECDC4}
+.sentence-style{font-size:clamp(16px,4vw,24px);text-align:center;padding:10px;line-height:1.6}
+.math-big{font-size:clamp(32px,9vw,64px);font-weight:700;text-align:center;padding:16px}
+.math-emojis{font-size:clamp(24px,7vw,48px);text-align:center;letter-spacing:4px;margin:8px 0}
+.hero-icon{font-size:clamp(40px,10vw,64px);text-align:center;margin:8px 0}
+.hero-name{font-size:clamp(18px,5vw,28px);font-weight:700;color:#764ba2;text-align:center}
+.hero-fact{font-size:clamp(13px,3.5vw,18px);line-height:1.7;text-align:center;padding:8px;color:#333}
+.ai-box{background:linear-gradient(135deg,#9B59B6,#6c3483);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px;font-size:clamp(14px,3.5vw,18px);line-height:1.7}
+#canvas{border-radius:16px;touch-action:none;cursor:crosshair;max-width:100%;display:block}
+.palette{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.swatch{width:clamp(28px,6vw,40px);height:clamp(28px,6vw,40px);border-radius:50%;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.swatch.active{border-color:#333;transform:scale(1.25)}
+.bsizes{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0}
+.bbtn{width:36px;height:36px;border-radius:50%;border:2px solid #999;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.bbtn.active{border-color:#764ba2;background:#f3e5ff}
+.draw-ctrls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.dbtn{background:#fff;border:2px solid #ccc;border-radius:12px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700}
+.draw-prompt{font-size:clamp(16px,4vw,22px);font-weight:700;text-align:center;color:#764ba2;background:#f3e5ff;border-radius:12px;padding:10px 16px;margin-bottom:8px}
+.voice-btn{background:linear-gradient(135deg,#FF6B9D,#ff4081);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;cursor:pointer}
 .voice-row{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0}
-.level-badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
-.level-badge{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .2s}
-.level-badge.active{box-shadow:0 2px 8px rgba(0,0,0,.2);transform:scale(1.05)}
-.confetti-piece{position:fixed;width:10px;height:10px;border-radius:2px;animation:fall 2.5s linear forwards;pointer-events:none;z-index:9999}
+.lvl-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.lvl-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid}
+.confetti{position:fixed;width:10px;height:10px;border-radius:2px;animation:fall 2.5s linear forwards;pointer-events:none;z-index:9999}
 @media(min-width:768px){.menu-grid{grid-template-columns:repeat(3,1fr)}}
-#completion-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 70px);padding:20px;text-align:center}
-#completion-screen.active{display:flex}
-.completion-card{background:#fff;border-radius:30px;padding:30px;box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:500px;width:100%}
-.big-emoji{font-size:80px;animation:bounce 1s infinite;display:block;margin:0 auto 16px}
-.completion-title{font-size:clamp(22px,6vw,36px);font-weight:700;color:#764ba2;margin-bottom:8px}
-.final-score{font-size:clamp(28px,8vw,52px);font-weight:700;background:linear-gradient(135deg,#FF6B9D,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.play-again-btn{background:linear-gradient(135deg,#FF6B9D,#764ba2);color:#fff;border:none;border-radius:30px;padding:14px 32px;font-size:18px;font-family:inherit;cursor:pointer;margin-top:16px;font-weight:700;box-shadow:0 4px 15px rgba(118,75,162,.4)}
-.play-again-btn:active{transform:scale(.95)}
+#done{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 70px);padding:20px;text-align:center}
+#done.active{display:flex}
+.done-card{background:#fff;border-radius:30px;padding:30px;box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:500px;width:100%}
+.done-title{font-size:clamp(22px,6vw,36px);font-weight:700;color:#764ba2;margin-bottom:8px}
+.done-score{font-size:clamp(28px,8vw,52px);font-weight:700;background:linear-gradient(135deg,#FF6B9D,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.again-btn{background:linear-gradient(135deg,#FF6B9D,#764ba2);color:#fff;border:none;border-radius:30px;padding:14px 32px;font-size:18px;font-family:inherit;cursor:pointer;margin-top:16px;font-weight:700}
 </style>
 </head>
 <body>
-<div id="feedback-overlay"></div>
+<div id="feedback"></div>
 <div id="header">
-  <div id="chipmunk-mascot" onclick="speakChipmunk()">🐿️</div>
+  <span id="chipmunk" onclick="speakChipmunk()">&#x1F43F;&#xFE0F;</span>
   <h1>Learning with Chipmunk!</h1>
-  <div id="score-display">⭐ <span id="score-val">0</span></div>
+  <div id="score-display">&#x2B50; <span id="sv">0</span></div>
 </div>
-<div id="main-menu" class="screen active">
-  <h2>🌟 What do you want to learn today? 🌟</h2>
+
+<div id="menu" class="screen active">
+  <h2 style="font-size:clamp(20px,5vw,36px);color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,.4);text-align:center;margin-bottom:8px">&#x1F31F; What do you want to learn today? &#x1F31F;</h2>
   <div class="menu-grid">
-    <div class="menu-btn reading" onclick="openScreen('reading')"><span class="icon">📚</span><span class="label">Reading &amp; Sounds</span></div>
-    <div class="menu-btn math" onclick="openScreen('math')"><span class="icon">🔢</span><span class="label">Fun Math</span></div>
-    <div class="menu-btn history" onclick="openScreen('history')"><span class="icon">✊🏾</span><span class="label">Black History Heroes</span></div>
-    <div class="menu-btn ai" onclick="openScreen('ai')"><span class="icon">🤖</span><span class="label">What is AI?</span></div>
-    <div class="menu-btn drawing" onclick="openScreen('drawing')" style="grid-column:1/-1"><span class="icon">🎨</span><span class="label">Drawing Game</span></div>
+    <div class="menu-btn reading" onclick="go('reading')"><span class="icon">&#x1F4DA;</span><span class="label">Reading &amp; Sounds</span></div>
+    <div class="menu-btn math" onclick="go('math')"><span class="icon">&#x1F522;</span><span class="label">Fun Math</span></div>
+    <div class="menu-btn history" onclick="go('history')"><span class="icon">&#x270A;&#x1F3FE;</span><span class="label">Black History Heroes</span></div>
+    <div class="menu-btn ai" onclick="go('ai')"><span class="icon">&#x1F916;</span><span class="label">What is AI?</span></div>
+    <div class="menu-btn drawing" onclick="go('drawing')" style="grid-column:1/-1"><span class="icon">&#x1F3A8;</span><span class="label">Drawing Game</span></div>
   </div>
-  <p style="margin-top:16px;color:white;font-size:15px;text-align:center;opacity:.9">Tap Chipmunk 🐿️ anytime for a fun message!</p>
+  <p style="margin-top:16px;color:white;font-size:15px;text-align:center;opacity:.9">Tap Chipmunk &#x1F43F;&#xFE0F; for a fun message!</p>
 </div>
-
-<div id="reading-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+<div id="reading" class="screen">
+  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
-    <div class="screen-title" style="color:#d63384">📚 Reading with Chipmunk!</div>
-    <div class="level-badges">
-      <div id="lvl-sounds" class="level-badge active" style="background:#d63384;color:white;border-color:#d63384" onclick="setReadingLevel('sounds')">🔊 Sounds</div>
-      <div id="lvl-vowels" class="level-badge" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setReadingLevel('vowels')">🅰️ Vowels</div>
-      <div id="lvl-words" class="level-badge" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setReadingLevel('words')">📝 Words</div>
-      <div id="lvl-sentences" class="level-badge" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setReadingLevel('sentences')">📖 Sentences</div>
+    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#d63384">&#x1F4DA; Reading with Chipmunk!</div>
+    <div class="lvl-btns">
+      <div id="ls" class="lvl-btn" style="background:#d63384;color:#fff;border-color:#d63384" onclick="setR('sounds')">&#x1F50A; Sounds</div>
+      <div id="lv" class="lvl-btn" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setR('vowels')">&#x1F170;&#xFE0F; Vowels</div>
+      <div id="lw" class="lvl-btn" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setR('words')">&#x1F4DD; Words</div>
+      <div id="lx" class="lvl-btn" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setR('sentences')">&#x1F4D6; Sentences</div>
     </div>
-    <div class="progress-wrap"><div class="progress-fill" id="reading-progress" style="width:0"></div></div>
-    <div id="reading-content"></div>
-    <div class="choices" id="reading-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button><span style="font-size:14px;color:#666">Tap to hear it!</span></div>
+    <div class="progress-wrap"><div class="progress-fill" id="rp" style="width:0"></div></div>
+    <div id="rc"></div>
+    <div class="choices" id="rch"></div>
+    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button><span style="font-size:14px;color:#666">Tap to hear!</span></div>
   </div>
 </div>
 
-<div id="math-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+<div id="math" class="screen">
+  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
-    <div class="screen-title" style="color:#e67e22">🔢 Math Fun!</div>
-    <div class="level-badges">
-      <div id="lvl-counting" class="level-badge active" style="background:#fd7e14;color:white;border-color:#fd7e14" onclick="setMathLevel('counting')">🍎 Counting</div>
-      <div id="lvl-addition" class="level-badge" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setMathLevel('addition')">➕ Adding</div>
-      <div id="lvl-subtraction" class="level-badge" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setMathLevel('subtraction')">➖ Taking Away</div>
-      <div id="lvl-shapes" class="level-badge" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6" onclick="setMathLevel('shapes')">🔷 Shapes</div>
+    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#e67e22">&#x1F522; Math Fun!</div>
+    <div class="lvl-btns">
+      <div id="mc" class="lvl-btn" style="background:#fd7e14;color:#fff;border-color:#fd7e14" onclick="setM('counting')">&#x1F34E; Counting</div>
+      <div id="ma" class="lvl-btn" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setM('addition')">&#x2795; Adding</div>
+      <div id="ms" class="lvl-btn" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setM('subtraction')">&#x2796; Taking Away</div>
+      <div id="msh" class="lvl-btn" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6" onclick="setM('shapes')">&#x1F537; Shapes</div>
     </div>
-    <div class="progress-wrap"><div class="progress-fill" id="math-progress" style="width:0"></div></div>
-    <div id="math-content"></div>
-    <div class="choices" id="math-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
+    <div class="progress-wrap"><div class="progress-fill" id="mp" style="width:0"></div></div>
+    <div id="mc2"></div>
+    <div class="choices" id="mch"></div>
+    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
 
-<div id="history-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+<div id="history" class="screen">
+  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
-    <div class="screen-title" style="color:#e67e22">✊🏾 Black History Heroes!</div>
-    <div class="progress-wrap"><div class="progress-fill" id="history-progress" style="width:0"></div></div>
-    <div id="history-content"></div>
-    <div class="choices" id="history-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
+    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#e67e22">&#x270A;&#x1F3FE; Black History Heroes!</div>
+    <div class="progress-wrap"><div class="progress-fill" id="hp" style="width:0"></div></div>
+    <div id="hc"></div>
+    <div class="choices" id="hch"></div>
+    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
 
-<div id="ai-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+<div id="ai" class="screen">
+  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
-    <div class="screen-title" style="color:#9B59B6">🤖 What is Artificial Intelligence?</div>
-    <div class="progress-wrap"><div class="progress-fill" id="ai-progress" style="width:0"></div></div>
-    <div id="ai-content"></div>
-    <div class="choices" id="ai-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
+    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#9B59B6">&#x1F916; What is Artificial Intelligence?</div>
+    <div class="progress-wrap"><div class="progress-fill" id="ap" style="width:0"></div></div>
+    <div id="ac"></div>
+    <div class="choices" id="ach"></div>
+    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
 
-<div id="drawing-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+<div id="drawing" class="screen">
+  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card" style="padding:14px">
-    <div class="screen-title" style="color:#198754">🎨 Drawing with Chipmunk!</div>
-    <div class="draw-word-prompt">Draw: <span id="draw-word">a cat 🐱</span></div>
-    <div style="display:flex;justify-content:center"><canvas id="draw-canvas"></canvas></div>
-    <div class="color-palette" id="color-palette"></div>
-    <div class="brush-sizes" id="brush-sizes"></div>
-    <div class="draw-controls">
-      <button class="draw-btn" onclick="clearCanvas()" style="border-color:#e53935;color:#e53935">🗑️ Clear</button>
-      <button class="draw-btn" onclick="toggleEraser()" id="eraser-btn" style="border-color:#888;color:#555">⬜ Eraser</button>
-      <button class="draw-btn" onclick="newDrawWord()" style="border-color:#198754;color:#198754">🔀 New Word</button>
-      <button class="draw-btn" onclick="speakDrawWord()" style="border-color:#0d6efd;color:#0d6efd">🔊 Say It</button>
+    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:8px;text-align:center;color:#198754">&#x1F3A8; Drawing with Chipmunk!</div>
+    <div class="draw-prompt">Draw: <span id="dw">a cat &#x1F431;</span></div>
+    <div style="display:flex;justify-content:center"><canvas id="canvas"></canvas></div>
+    <div class="palette" id="pal"></div>
+    <div class="bsizes" id="bsz"></div>
+    <div class="draw-ctrls">
+      <button class="dbtn" onclick="clearC()" style="border-color:#e53935;color:#e53935">&#x1F5D1;&#xFE0F; Clear</button>
+      <button class="dbtn" onclick="toggleE()" id="ebtn" style="border-color:#888;color:#555">&#x2B1C; Eraser</button>
+      <button class="dbtn" onclick="newWord()" style="border-color:#198754;color:#198754">&#x1F500; New Word</button>
+      <button class="dbtn" onclick="sayWord()" style="border-color:#0d6efd;color:#0d6efd">&#x1F50A; Say It</button>
     </div>
     <p style="text-align:center;margin-top:8px;font-size:13px;color:#888">Use your finger or mouse to draw!</p>
   </div>
 </div>
 
-<div id="completion-screen">
-  <div class="completion-card">
-    <span class="big-emoji">🎉</span>
-    <div class="completion-title">Amazing Job!</div>
+<div id="done">
+  <div class="done-card">
+    <div style="font-size:80px;animation:bounce 1s infinite;display:block;margin:0 auto 16px;text-align:center">&#x1F389;</div>
+    <div class="done-title">Amazing Job!</div>
     <p style="font-size:16px;color:#666;margin-bottom:8px">You scored</p>
-    <div class="final-score" id="final-score-display">0</div>
+    <div class="done-score" id="ds">0</div>
     <p style="font-size:16px;color:#666;margin-top:4px">stars!</p>
-    <div id="completion-stars" style="display:flex;justify-content:center;gap:4px;margin:8px 0;font-size:28px"></div>
-    <button class="play-again-btn" onclick="goHome()">🏠 Play Again!</button>
+    <div id="dstars" style="display:flex;justify-content:center;gap:4px;margin:8px 0;font-size:28px"></div>
+    <button class="again-btn" onclick="goHome()">&#x1F3E0; Play Again!</button>
   </div>
 </div>
 <script>
-var score=0, currentSpeak='', readingLevel='sounds', mathLevel='counting', questionCount=0, totalQ=8;
-var synth=window.speechSynthesis, voices=[];
-synth.addEventListener('voiceschanged',function(){voices=synth.getVoices();});
-setTimeout(function(){voices=synth.getVoices();},800);
+var score=0,curSpeak='',rLvl='sounds',mLvl='counting',qCount=0,TQ=8;
+var syn=window.speechSynthesis,voc=[];
+syn.onvoiceschanged=function(){voc=syn.getVoices();};
+setTimeout(function(){voc=syn.getVoices();},600);
 
-function speak(text,rate,pitch){
-  rate=rate||0.85;pitch=pitch||1.4;synth.cancel();
-  var u=new SpeechSynthesisUtterance(text);
-  var v=voices.find(function(x){return x.name.indexOf('Samantha')>-1||x.name.indexOf('Karen')>-1||x.lang==='en-US';});
-  if(v)u.voice=v;u.rate=rate;u.pitch=pitch;u.volume=1;synth.speak(u);
+function say(t,r,p){
+  r=r||0.85;p=p||1.4;syn.cancel();
+  var u=new SpeechSynthesisUtterance(t);
+  var v=voc.find(function(x){return x.name.indexOf('Samantha')>-1||x.lang==='en-US';});
+  if(v)u.voice=v;u.rate=r;u.pitch=p;u.volume=1;syn.speak(u);
 }
 
 function speakChipmunk(){
   var m=['Hi friend! I am Chipmunk! Lets learn together!','You are so smart! Keep going!','Wow, you are doing amazing!','Learning is so much fun!','I believe in you!','Great job! You are a superstar!'];
-  speak(m[Math.floor(Math.random()*m.length)],0.9,1.6);
-  var e=document.getElementById('chipmunk-mascot');
+  say(m[Math.floor(Math.random()*m.length)],0.9,1.6);
+  var e=document.getElementById('chipmunk');
   e.style.transform='scale(1.5) rotate(15deg)';
   setTimeout(function(){e.style.transform='';},600);
 }
+function speakCur(){if(curSpeak)say(curSpeak);}
 
-function speakCurrent(){if(currentSpeak)speak(currentSpeak);}
-
-function openScreen(name){
+function go(name){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById('main-menu').classList.remove('active');
-  document.getElementById(name+'-screen').classList.add('active');
-  questionCount=0;
-  if(name==='reading'){readingLevel='sounds';updateReadLvl();genReading();}
-  else if(name==='math'){mathLevel='counting';updateMathLvl();genMath();}
-  else if(name==='history'){histOrder=[];genHistory();}
-  else if(name==='ai'){genAI();}
-  else if(name==='drawing'){initDrawing();}
+  document.getElementById('menu').classList.remove('active');
+  document.getElementById(name).classList.add('active');
+  qCount=0;
+  if(name==='reading'){rLvl='sounds';upRLvl();genR();}
+  else if(name==='math'){mLvl='counting';upMLvl();genM();}
+  else if(name==='history'){hOrd=[];genH();}
+  else if(name==='ai'){genA();}
+  else if(name==='drawing'){initDraw();}
 }
 
 function goHome(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  var cs=document.getElementById('completion-screen');
-  cs.classList.remove('active');cs.style.display='none';
-  document.getElementById('main-menu').classList.add('active');
-  speak('Welcome back! What do you want to learn today?',0.9,1.5);
+  var d=document.getElementById('done');d.classList.remove('active');d.style.display='none';
+  document.getElementById('menu').classList.add('active');
+  say('Welcome back! What do you want to learn today?',0.9,1.5);
 }
 
-function showFeedback(ok){
-  var el=document.getElementById('feedback-overlay');
-  el.textContent=ok?['⭐','🌟','✨','🎉','🏆'][Math.floor(Math.random()*5)]:'💪';
+function fb(ok){
+  var el=document.getElementById('feedback');
+  el.textContent=ok?['&#x2B50;','&#x1F31F;','&#x2728;','&#x1F389;','&#x1F3C6;'][Math.floor(Math.random()*5)]:'&#x1F4AA;';
   el.classList.add('show');
-  if(ok)doConfetti();
+  if(ok)confetti();
   setTimeout(function(){el.classList.remove('show');},1000);
 }
 
-function addScore(pts){
-  score+=pts;document.getElementById('score-val').textContent=score;
+function addSc(n){
+  score+=n;document.getElementById('sv').textContent=score;
   var el=document.getElementById('score-display');
-  el.style.transform='scale(1.3)';
-  setTimeout(function(){el.style.transform='';},300);
+  el.style.transform='scale(1.3)';setTimeout(function(){el.style.transform='';},300);
 }
 
-function updProg(id,val){document.getElementById(id+'-progress').style.width=val+'%';}
+function prog(id,v){document.getElementById(id).style.width=v+'%';}
 
-function shuffle(arr){
-  var a=arr.slice();
-  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
-  return a;
+function shuf(a){
+  var r=a.slice();
+  for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;}
+  return r;
 }
 
-var SOUNDS=[
-  {l:'A',s:'Ah',v:true},{l:'B',s:'Buh',v:false},{l:'C',s:'Kuh',v:false},{l:'D',s:'Duh',v:false},
-  {l:'E',s:'Eh',v:true},{l:'F',s:'Fff',v:false},{l:'G',s:'Guh',v:false},{l:'H',s:'Huh',v:false},
-  {l:'I',s:'Ih',v:true},{l:'J',s:'Juh',v:false},{l:'K',s:'Kuh',v:false},{l:'L',s:'Lll',v:false},
-  {l:'M',s:'Mmm',v:false},{l:'N',s:'Nnn',v:false},{l:'O',s:'Oh',v:true},{l:'P',s:'Puh',v:false},
-  {l:'R',s:'Rrr',v:false},{l:'S',s:'Sss',v:false},{l:'T',s:'Tuh',v:false},{l:'U',s:'Uh',v:true},
-  {l:'V',s:'Vvv',v:false},{l:'W',s:'Wuh',v:false},{l:'Y',s:'Yuh',v:false},{l:'Z',s:'Zzz',v:false}
+var SND=[
+  ['A','Ah',1],['B','Buh',0],['C','Kuh',0],['D','Duh',0],['E','Eh',1],
+  ['F','Fff',0],['G','Guh',0],['H','Huh',0],['I','Ih',1],['J','Juh',0],
+  ['K','Kuh',0],['L','Lll',0],['M','Mmm',0],['N','Nnn',0],['O','Oh',1],
+  ['P','Puh',0],['R','Rrr',0],['S','Sss',0],['T','Tuh',0],['U','Uh',1],
+  ['V','Vvv',0],['W','Wuh',0],['Y','Yuh',0],['Z','Zzz',0]
 ];
-var VOWELS=['A','E','I','O','U'];
-var WORDS=[
-  {w:'cat',p:'🐱'},{w:'dog',p:'🐶'},{w:'sun',p:'☀️'},{w:'hat',p:'🎩'},
-  {w:'big',p:'🐘'},{w:'cup',p:'🥤'},{w:'bed',p:'🛏️'},{w:'fox',p:'🦊'},
-  {w:'bug',p:'🐛'},{w:'hop',p:'🐸'},{w:'run',p:'🏃'},{w:'sit',p:'🪑'},
-  {w:'red',p:'🔴'},{w:'fun',p:'🎉'},{w:'map',p:'🗺️'},{w:'log',p:'🪵'}
+var VWL=['A','E','I','O','U'];
+var WDS=[
+  ['cat','&#x1F431;'],['dog','&#x1F436;'],['sun','&#x2600;&#xFE0F;'],['hat','&#x1F3A9;'],
+  ['big','&#x1F418;'],['cup','&#x1F964;'],['bed','&#x1F6CF;&#xFE0F;'],['fox','&#x1F98A;'],
+  ['bug','&#x1F41B;'],['hop','&#x1F438;'],['run','&#x1F3C3;'],['sit','&#x1FA91;'],
+  ['red','&#x1F534;'],['fun','&#x1F389;'],['map','&#x1F5FA;&#xFE0F;'],['log','&#x1FAB5;']
 ];
-var SENTS=[
-  {s:'The cat sat on the mat.',q:'Where did the cat sit?',c:['on the mat','in the box','on the tree','by the lake'],a:'on the mat'},
-  {s:'The dog ran in the park.',q:'Where did the dog run?',c:['in the park','at school','in the house','at the beach'],a:'in the park'},
-  {s:'The sun is big and hot.',q:'What is the sun like?',c:['big and hot','small and cold','blue and round','soft and fluffy'],a:'big and hot'},
-  {s:'I love to read books.',q:'What does the person love?',c:['to read books','to eat cake','to play games','to sleep'],a:'to read books'},
-  {s:'The bird has pretty wings.',q:'What does the bird have?',c:['pretty wings','sharp claws','a big hat','red shoes'],a:'pretty wings'},
-  {s:'We play outside in the rain.',q:'When do we play outside?',c:['in the rain','at night','after dinner','in winter'],a:'in the rain'}
+var SNTS=[
+  ['The cat sat on the mat.','Where did the cat sit?',['on the mat','in the box','on the tree','by the lake'],'on the mat'],
+  ['The dog ran in the park.','Where did the dog run?',['in the park','at school','in the house','at the beach'],'in the park'],
+  ['The sun is big and hot.','What is the sun like?',['big and hot','small and cold','blue and round','soft and fluffy'],'big and hot'],
+  ['I love to read books.','What does the person love?',['to read books','to eat cake','to play games','to sleep'],'to read books'],
+  ['The bird has pretty wings.','What does the bird have?',['pretty wings','sharp claws','a big hat','red shoes'],'pretty wings'],
+  ['We play outside in the rain.','When do we play outside?',['in the rain','at night','after dinner','in winter'],'in the rain']
 ];
 
-function setReadingLevel(lv){readingLevel=lv;questionCount=0;updateReadLvl();genReading();}
+function setR(lv){rLvl=lv;qCount=0;upRLvl();genR();}
 
-function updateReadLvl(){
-  var map={sounds:'#d63384',vowels:'#0d6efd',words:'#198754',sentences:'#fd7e14'};
+function upRLvl(){
+  var map={sounds:'ls',vowels:'lv',words:'lw',sentences:'lx'};
+  var colors={sounds:'#d63384',vowels:'#0d6efd',words:'#198754',sentences:'#fd7e14'};
   ['sounds','vowels','words','sentences'].forEach(function(l){
-    var el=document.getElementById('lvl-'+l);
+    var el=document.getElementById(map[l]);
     if(!el)return;
-    if(l===readingLevel){el.classList.add('active');el.style.background=map[l];el.style.color='white';}
-    else{el.classList.remove('active');el.style.background='';el.style.color=map[l];}
+    if(l===rLvl){el.style.background=colors[l];el.style.color='#fff';}
+    else{el.style.background='';el.style.color=colors[l];}
   });
 }
 
-function genReading(){
-  var con=document.getElementById('reading-content');
-  var cho=document.getElementById('reading-choices');
-  questionCount++;
-  updProg('reading',Math.min((questionCount/totalQ)*100,100));
+function btn(v,c,txt){
+  return '<button class="choice-btn" onclick="chk(this)" data-v="'+v+'" data-c="'+c+'">'+txt+'</button>';
+}
 
-  if(readingLevel==='sounds'){
-    var item=SOUNDS[Math.floor(Math.random()*SOUNDS.length)];
-    var cls=item.v?'vowel':'consonant';
-    var badge=item.v?'(This is a Vowel! ⭐)':'(This is a Consonant!)';
-    con.innerHTML='<div class="question-box"><div class="question-sub">What sound does this letter make?</div>'
-      +'<div class="letter-display"><span class="'+cls+'">'+item.l+'</span></div>'
-      +'<div class="question-sub">'+badge+'</div></div>';
-    currentSpeak='The letter '+item.l+' makes the '+item.s+' sound.';
-    speak('What sound does the letter '+item.l+' make?',0.8,1.4);
-    var wrong=shuffle(SOUNDS.filter(function(s){return s.l!==item.l;})).slice(0,3);
-    var opts=shuffle([item].concat(wrong));
-    cho.innerHTML=opts.map(function(o){
-      return '<button class="choice-btn" onclick="checkReading(this,this.dataset.v,this.dataset.c)" data-v="'+o.s+'" data-c="'+item.s+'">'+o.s+'</button>';
-    }).join('');
+function genR(){
+  var con=document.getElementById('rc');
+  var cho=document.getElementById('rch');
+  qCount++;prog('rp',Math.min((qCount/TQ)*100,100));
 
-  }else if(readingLevel==='vowels'){
-    var isVq=Math.random()>0.4;
+  if(rLvl==='sounds'){
+    var item=SND[Math.floor(Math.random()*SND.length)];
+    var cls=item[2]?'vowel-style':'cons-style';
+    var badge=item[2]?'(This is a Vowel! &#x2B50;)':'(This is a Consonant!)';
+    con.innerHTML='<div class="question-box"><div class="question-sub">What sound does this letter make?</div><div class="big-letter"><span class="'+cls+'">'+item[0]+'</span></div><div class="question-sub">'+badge+'</div></div>';
+    curSpeak='The letter '+item[0]+' makes the '+item[1]+' sound.';
+    say('What sound does the letter '+item[0]+' make?',0.8,1.4);
+    var wrong=shuf(SND.filter(function(s){return s[0]!==item[0];})).slice(0,3);
+    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return btn(o[1],item[1],o[1]);}).join('');
+
+  }else if(rLvl==='vowels'){
     var cons='BCDFGHJKLMNPQRSTVWXYZ'.split('');
-    var letter=isVq?VOWELS[Math.floor(Math.random()*VOWELS.length)]:cons[Math.floor(Math.random()*cons.length)];
-    var isVowel=VOWELS.indexOf(letter)>-1;
-    var correct=isVowel?'Vowel!':'Consonant!';
-    con.innerHTML='<div class="question-box"><div class="question-sub">Is this letter a Vowel or Consonant?</div>'
-      +'<div class="letter-display"><span style="color:white">'+letter+'</span></div>'
-      +'<div class="question-sub">Vowels: A, E, I, O, U ⭐</div></div>';
-    currentSpeak='Is the letter '+letter+' a vowel or a consonant?';
-    speak(currentSpeak,0.85,1.4);
-    cho.innerHTML='<button class="choice-btn" onclick="checkReading(this,this.dataset.v,this.dataset.c)" data-v="Vowel!" data-c="'+correct+'">⭐ Vowel!</button>'
-      +'<button class="choice-btn" onclick="checkReading(this,this.dataset.v,this.dataset.c)" data-v="Consonant!" data-c="'+correct+'">Consonant!</button>';
+    var isV=Math.random()>0.4;
+    var letter=isV?VWL[Math.floor(Math.random()*VWL.length)]:cons[Math.floor(Math.random()*cons.length)];
+    var correct=VWL.indexOf(letter)>-1?'Vowel!':'Consonant!';
+    con.innerHTML='<div class="question-box"><div class="question-sub">Is this letter a Vowel or Consonant?</div><div class="big-letter"><span style="color:white">'+letter+'</span></div><div class="question-sub">Vowels: A, E, I, O, U &#x2B50;</div></div>';
+    curSpeak='Is the letter '+letter+' a vowel or a consonant?';
+    say(curSpeak,0.85,1.4);
+    cho.innerHTML=btn('Vowel!',correct,'&#x2B50; Vowel!')+btn('Consonant!',correct,'Consonant!');
 
-  }else if(readingLevel==='words'){
-    var item=WORDS[Math.floor(Math.random()*WORDS.length)];
-    var wrong=shuffle(WORDS.filter(function(w){return w.w!==item.w;})).slice(0,3);
-    con.innerHTML='<div class="question-box"><div class="question-sub">Which word matches this picture?</div>'
-      +'<div class="letter-display">'+item.p+'</div></div>';
-    currentSpeak=item.w;
-    speak('Which word matches this picture? '+item.w,0.8,1.4);
-    var opts=shuffle([item].concat(wrong));
-    cho.innerHTML=opts.map(function(o){
-      return '<button class="choice-btn" onclick="checkReading(this,this.dataset.v,this.dataset.c)" data-v="'+o.w+'" data-c="'+item.w+'">'+o.w+'</button>';
-    }).join('');
+  }else if(rLvl==='words'){
+    var item=WDS[Math.floor(Math.random()*WDS.length)];
+    var wrong=shuf(WDS.filter(function(w){return w[0]!==item[0];})).slice(0,3);
+    con.innerHTML='<div class="question-box"><div class="question-sub">Which word matches this picture?</div><div class="big-letter">'+item[1]+'</div></div>';
+    curSpeak=item[0];
+    say('Which word matches this picture? '+item[0],0.8,1.4);
+    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return btn(o[0],item[0],o[0]);}).join('');
 
   }else{
-    var item=SENTS[Math.floor(Math.random()*SENTS.length)];
-    con.innerHTML='<div class="question-box"><div class="sentence-display" style="color:white">'+item.s+'</div>'
-      +'<div class="question-sub" style="margin-top:12px">'+item.q+'</div></div>';
-    currentSpeak=item.s+' '+item.q;
-    speak(item.s,0.8,1.4);
-    var opts=shuffle(item.c.slice());
-    var ansEsc=item.a.replace(/"/g,'&quot;');
-    cho.innerHTML=opts.map(function(o){
-      return '<button class="choice-btn" onclick="checkReading(this,this.dataset.v,this.dataset.c)" data-v="'+o.replace(/"/g,'&quot;')+'" data-c="'+ansEsc+'">'+o+'</button>';
-    }).join('');
+    var item=SNTS[Math.floor(Math.random()*SNTS.length)];
+    con.innerHTML='<div class="question-box"><div class="sentence-style" style="color:white">'+item[0]+'</div><div class="question-sub" style="margin-top:12px">'+item[1]+'</div></div>';
+    curSpeak=item[0]+' '+item[1];
+    say(item[0],0.8,1.4);
+    cho.innerHTML=shuf(item[2].slice()).map(function(o){return btn(o,item[3],o);}).join('');
   }
 }
 
-function checkReading(btn,chosen,correct){
-  document.querySelectorAll('#reading-choices .choice-btn').forEach(function(b){b.onclick=null;});
-  if(chosen===correct){
-    btn.classList.add('correct');addScore(2);showFeedback(true);
-    speak('Great job! That is correct!',0.9,1.6);
-  }else{
-    btn.classList.add('wrong');
-    document.querySelectorAll('#reading-choices .choice-btn').forEach(function(b){if(b.dataset.v===correct)b.classList.add('correct');});
-    speak('Good try! The answer is '+correct,0.9,1.4);showFeedback(false);
-  }
-  setTimeout(function(){if(questionCount<totalQ)genReading();else showCompletion();},1800);
+function chkR(btn,v,c){
+  document.querySelectorAll('#rch .choice-btn').forEach(function(b){b.onclick=null;});
+  if(v===c){btn.classList.add('correct');addSc(2);fb(true);say('Great job! That is correct!',0.9,1.6);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#rch .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
+  setTimeout(function(){if(qCount<TQ)genR();else showDone();},1800);
 }
-var SHAPES=[
-  {n:'Circle',p:'⭕',d:'has no corners. It is perfectly round!'},
-  {n:'Square',p:'🟥',d:'has 4 equal sides and 4 corners!'},
-  {n:'Triangle',p:'🔺',d:'has 3 sides and 3 corners!'},
-  {n:'Rectangle',p:'🟦',d:'has 4 sides, 2 long and 2 short!'},
-  {n:'Star',p:'⭐',d:'has 5 beautiful points!'},
-  {n:'Diamond',p:'🔷',d:'has 4 sides like a tilted square!'},
-  {n:'Oval',p:'🥚',d:'looks like a stretched circle!'},
-  {n:'Heart',p:'❤️',d:'is the shape of love!'}
+var SHP=[
+  ['Circle','&#x2B55;','has no corners and is perfectly round!'],
+  ['Square','&#x1F7E5;','has 4 equal sides and 4 corners!'],
+  ['Triangle','&#x1F53A;','has 3 sides and 3 corners!'],
+  ['Rectangle','&#x1F7E6;','has 4 sides, 2 long and 2 short!'],
+  ['Star','&#x2B50;','has 5 beautiful points!'],
+  ['Diamond','&#x1F537;','has 4 sides like a tilted square!'],
+  ['Oval','&#x1F95A;','looks like a stretched circle!'],
+  ['Heart','&#x2764;&#xFE0F;','is the beautiful shape of love!']
 ];
-var EMOJIS=['🍎','⭐','🐶','🍓','🎈','🦋','🌻','🐸','🍕','🎪'];
+var EMJS=['&#x1F34E;','&#x2B50;','&#x1F436;','&#x1F353;','&#x1F388;','&#x1F98B;','&#x1F33B;','&#x1F438;','&#x1F355;','&#x1F3AA;'];
 
-function setMathLevel(lv){mathLevel=lv;questionCount=0;updateMathLvl();genMath();}
+function setM(lv){mLvl=lv;qCount=0;upMLvl();genM();}
 
-function updateMathLvl(){
-  var map={counting:'#fd7e14',addition:'#198754',subtraction:'#0d6efd',shapes:'#9B59B6'};
+function upMLvl(){
+  var ids={counting:'mc',addition:'ma',subtraction:'ms',shapes:'msh'};
+  var colors={counting:'#fd7e14',addition:'#198754',subtraction:'#0d6efd',shapes:'#9B59B6'};
   ['counting','addition','subtraction','shapes'].forEach(function(l){
-    var el=document.getElementById('lvl-'+l);
+    var el=document.getElementById(ids[l]);
     if(!el)return;
-    if(l===mathLevel){el.classList.add('active');el.style.background=map[l];el.style.color='white';}
-    else{el.classList.remove('active');el.style.background='';el.style.color=map[l];}
+    if(l===mLvl){el.style.background=colors[l];el.style.color='#fff';}
+    else{el.style.background='';el.style.color=colors[l];}
   });
 }
 
-function genMath(){
-  var con=document.getElementById('math-content');
-  var cho=document.getElementById('math-choices');
-  questionCount++;
-  updProg('math',Math.min((questionCount/totalQ)*100,100));
+function mbtn(v,c,t){
+  return '<button class="choice-btn" onclick="chk(this)" data-v="'+v+'" data-c="'+c+'" data-ctx="math">'+t+'</button>';
+}
 
-  if(mathLevel==='counting'){
+function nbtn(num,ans){
+  return '<button class="choice-btn" onclick="chk(this)" data-v="'+num+'" data-c="'+ans+'" data-ctx="math">'+num+'</button>';
+}
+
+function nrow(ans){
+  var set=[ans],tries=0;
+  while(set.length<4&&tries<60){tries++;var n=ans+Math.floor(Math.random()*7)-3;if(n>=0&&n<=20&&set.indexOf(n)<0)set.push(n);}
+  return shuf(set).map(function(n){return nbtn(n,ans);}).join('');
+}
+
+function genM(){
+  var con=document.getElementById('mc2');
+  var cho=document.getElementById('mch');
+  qCount++;prog('mp',Math.min((qCount/TQ)*100,100));
+
+  if(mLvl==='counting'){
     var num=Math.floor(Math.random()*9)+1;
-    var em=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    var em=EMJS[Math.floor(Math.random()*EMJS.length)];
     var disp='';for(var i=0;i<num;i++)disp+=em+' ';
-    con.innerHTML='<div class="question-box"><div class="question-sub">How many do you see?</div><div class="math-objects">'+disp+'</div></div>';
-    currentSpeak='How many do you see? Count them!';
-    speak('How many do you see? Count them!',0.8,1.4);
-    cho.innerHTML=mkNumBtns(num);
+    con.innerHTML='<div class="question-box"><div class="question-sub">How many do you see?</div><div class="math-emojis">'+disp+'</div></div>';
+    curSpeak='How many do you see? Count them!';
+    say('How many do you see? Count them!',0.8,1.4);
+    cho.innerHTML=nrow(num);
 
-  }else if(mathLevel==='addition'){
+  }else if(mLvl==='addition'){
     var a=Math.floor(Math.random()*6)+1,b=Math.floor(Math.random()*6)+1,ans=a+b;
-    var em=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    var em=EMJS[Math.floor(Math.random()*EMJS.length)];
     var da='',db='';for(var i=0;i<a;i++)da+=em+' ';for(var i=0;i<b;i++)db+=em+' ';
-    con.innerHTML='<div class="question-box"><div class="math-objects">'+da+' + '+db+'</div>'
-      +'<div class="math-display" style="color:white">'+a+' + '+b+' = ?</div></div>';
-    currentSpeak=a+' plus '+b+' equals what?';
-    speak(a+' plus '+b+' equals what?',0.85,1.4);
-    cho.innerHTML=mkNumBtns(ans);
+    con.innerHTML='<div class="question-box"><div class="math-emojis">'+da+' + '+db+'</div><div class="math-big" style="color:white">'+a+' + '+b+' = ?</div></div>';
+    curSpeak=a+' plus '+b+' equals what?';
+    say(a+' plus '+b+' equals what?',0.85,1.4);
+    cho.innerHTML=nrow(ans);
 
-  }else if(mathLevel==='subtraction'){
+  }else if(mLvl==='subtraction'){
     var a=Math.floor(Math.random()*8)+3,b=Math.floor(Math.random()*(a-1))+1,ans=a-b;
-    con.innerHTML='<div class="question-box"><div class="math-display" style="color:white">'+a+' - '+b+' = ?</div>'
-      +'<div class="question-sub">Take away '+b+' from '+a+'</div></div>';
-    currentSpeak=a+' minus '+b+' equals what?';
-    speak(a+' minus '+b+' equals what?',0.85,1.4);
-    cho.innerHTML=mkNumBtns(ans);
+    con.innerHTML='<div class="question-box"><div class="math-big" style="color:white">'+a+' - '+b+' = ?</div><div class="question-sub">Take away '+b+' from '+a+'</div></div>';
+    curSpeak=a+' minus '+b+' equals what?';
+    say(a+' minus '+b+' equals what?',0.85,1.4);
+    cho.innerHTML=nrow(ans);
 
   }else{
-    var item=SHAPES[Math.floor(Math.random()*SHAPES.length)];
-    var doName=Math.random()>0.5;
-    if(doName){
-      con.innerHTML='<div class="question-box"><div class="question-sub">What shape is this?</div>'
-        +'<div class="letter-display">'+item.p+'</div></div>';
-      currentSpeak='What shape is this? It is a '+item.n;
-      speak('What shape is this?',0.85,1.4);
-      var wrong=shuffle(SHAPES.filter(function(s){return s.n!==item.n;})).slice(0,3);
-      var opts=shuffle([item].concat(wrong));
-      cho.innerHTML=opts.map(function(o){
-        return '<button class="choice-btn" onclick="checkMath(this,this.dataset.v,this.dataset.c)" data-v="'+o.n+'" data-c="'+item.n+'">'+o.n+'</button>';
-      }).join('');
-    }else{
-      con.innerHTML='<div class="question-box"><div class="question-sub">What can you tell me about a '+item.n+'?</div>'
-        +'<div class="letter-display">'+item.p+'</div></div>';
-      currentSpeak='A '+item.n+' '+item.d;
-      speak('A '+item.n+' '+item.d,0.85,1.4);
-      var wrong=shuffle(SHAPES.filter(function(s){return s.n!==item.n;})).slice(0,3);
-      var opts=shuffle([item].concat(wrong));
-      cho.innerHTML=opts.map(function(o){
-        return '<button class="choice-btn" onclick="checkMath(this,this.dataset.v,this.dataset.c)" data-v="'+o.n+'" data-c="'+item.n+'" style="font-size:14px">'+o.n+'</button>';
-      }).join('');
+    var item=SHP[Math.floor(Math.random()*SHP.length)];
+    con.innerHTML='<div class="question-box"><div class="question-sub">What shape is this?</div><div class="big-letter">'+item[1]+'</div></div>';
+    curSpeak='This shape is a '+item[0]+'. It '+item[2];
+    say('What shape is this?',0.85,1.4);
+    var wrong=shuf(SHP.filter(function(s){return s[0]!==item[0];})).slice(0,3);
+    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return mbtn(o[0],item[0],o[0]);}).join('');
+  }
+}
+
+function chkM(btn,v,c){
+  document.querySelectorAll('#mch .choice-btn').forEach(function(b){b.onclick=null;});
+  if(String(v)===String(c)){btn.classList.add('correct');addSc(2);fb(true);say('Excellent! You got it right!',0.9,1.6);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#mch .choice-btn').forEach(function(b){if(b.dataset.v===String(c))b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
+  setTimeout(function(){if(qCount<TQ)genM();else showDone();},1800);
     }
-  }
-}
-
-function mkNumBtns(ans){
-  var set=[ans];
-  var tries=0;
-  while(set.length<4&&tries<50){
-    tries++;
-    var n=ans+Math.floor(Math.random()*7)-3;
-    if(n>=0&&n<=20&&set.indexOf(n)<0)set.push(n);
-  }
-  return shuffle(set).map(function(n){
-    return '<button class="choice-btn" onclick="checkMath(this,this.dataset.v,this.dataset.c)" data-v="'+n+'" data-c="'+ans+'">'+n+'</button>';
-  }).join('');
-}
-
-function checkMath(btn,chosen,correct){
-  document.querySelectorAll('#math-choices .choice-btn').forEach(function(b){b.onclick=null;});
-  if(chosen===correct){
-    btn.classList.add('correct');addScore(2);showFeedback(true);
-    speak('Excellent! You got it right!',0.9,1.6);
-  }else{
-    btn.classList.add('wrong');
-    document.querySelectorAll('#math-choices .choice-btn').forEach(function(b){if(b.dataset.v===correct)b.classList.add('correct');});
-    speak('Good try! The answer is '+correct,0.9,1.4);showFeedback(false);
-  }
-  setTimeout(function(){if(questionCount<totalQ)genMath();else showCompletion();},1800);
-}
-var HISTORY=[
-  {person:'Harriet Tubman',emoji:'👩🏾',
-   fact:'Harriet Tubman was a very brave woman who helped hundreds of people escape slavery through secret paths called the Underground Railroad. She was called Moses because she led her people to freedom!',
-   q:'What was Harriet Tubman known for?',
-   c:['Helping people to freedom','Building a rocket','Painting pictures','Writing songs'],a:'Helping people to freedom'},
-  {person:'Martin Luther King Jr.',emoji:'👨🏾',
-   fact:'Dr. Martin Luther King Jr. was a peaceful leader who gave amazing speeches about fairness. His famous speech was called I Have a Dream. He wanted everyone to be treated the same no matter what!',
-   q:'What did Dr. King dream about?',
-   c:['Everyone being treated fairly','Flying to the moon','Eating ice cream','Building buildings'],a:'Everyone being treated fairly'},
-  {person:'Rosa Parks',emoji:'👩🏾',
-   fact:'Rosa Parks was a very brave woman who refused to give up her seat on a bus. She helped start a big movement for equal rights. She is called the mother of the freedom movement!',
-   q:'What did Rosa Parks refuse to do?',
-   c:['Give up her bus seat','Go to school','Eat vegetables','Read a book'],a:'Give up her bus seat'},
-  {person:'Barack Obama',emoji:'👨🏾',
-   fact:'Barack Obama became the first Black President of the United States in 2009! He worked very hard and went to great schools. He showed the whole world that you can achieve anything you dream of!',
-   q:'What did Barack Obama become first?',
-   c:['First Black President','First astronaut','First teacher','First doctor'],a:'First Black President'},
-  {person:'Mae Jemison',emoji:'👩🏾‍🚀',
-   fact:'Mae Jemison was the first Black woman to travel to space! She was a doctor AND an astronaut. She blasted off into space in 1992 and proved that girls can do absolutely anything!',
-   q:'What was Mae Jemison the first to do?',
-   c:['Black woman in space','Run a marathon','Build a bridge','Teach at school'],a:'Black woman in space'},
-  {person:'George Washington Carver',emoji:'👨🏾‍🔬',
-   fact:'George Washington Carver was an amazing scientist who discovered over 300 ways to use peanuts! He helped farmers grow better food and created many inventions. He loved plants and science so much!',
-   q:'What did George Washington Carver discover?',
-   c:['300 uses for peanuts','How to fly a plane','A new planet','Making music'],a:'300 uses for peanuts'},
-  {person:'Serena Williams',emoji:'🎾',
-   fact:'Serena Williams is one of the greatest tennis players who ever lived! She won 23 Grand Slam titles and showed the whole world that hard work can make your dreams come true. She is a true champion!',
-   q:'What sport made Serena Williams famous?',
-   c:['Tennis','Soccer','Basketball','Swimming'],a:'Tennis'},
-  {person:'Misty Copeland',emoji:'🩰',
-   fact:'Misty Copeland became the first Black woman to be a principal dancer at the American Ballet Theatre. She started ballet at age 13 and worked hard to become a world-famous ballerina!',
-   q:'What art form is Misty Copeland famous for?',
-   c:['Ballet dancing','Painting','Singing','Cooking'],a:'Ballet dancing'}
+var HST=[
+  ['Harriet Tubman','&#x1F469;&#x1F3FE;','Harriet Tubman was a very brave woman who helped hundreds of people escape slavery through secret paths called the Underground Railroad. She was called Moses because she led her people to freedom!','What was Harriet Tubman known for?',['Helping people to freedom','Building a rocket','Painting pictures','Writing songs'],'Helping people to freedom'],
+  ['Martin Luther King Jr.','&#x1F468;&#x1F3FE;','Dr. Martin Luther King Jr. was a peaceful leader who gave amazing speeches about fairness. His famous speech was I Have a Dream. He wanted everyone to be treated the same no matter what!','What did Dr. King dream about?',['Everyone being treated fairly','Flying to the moon','Eating ice cream','Building big buildings'],'Everyone being treated fairly'],
+  ['Rosa Parks','&#x1F469;&#x1F3FE;','Rosa Parks was a brave woman who refused to give up her seat on a bus. She helped start a big movement for equal rights. She is called the mother of the freedom movement!','What did Rosa Parks refuse to do?',['Give up her bus seat','Go to school','Eat vegetables','Read a book'],'Give up her bus seat'],
+  ['Barack Obama','&#x1F468;&#x1F3FE;','Barack Obama became the first Black President of the United States in 2009! He worked very hard and went to great schools. He showed the world that you can achieve anything you dream of!','What did Barack Obama become first?',['First Black President','First astronaut','First teacher','First doctor'],'First Black President'],
+  ['Mae Jemison','&#x1F469;&#x1F3FE;&#x200D;&#x1F680;','Mae Jemison was the first Black woman to travel to space! She was a doctor AND an astronaut. She blasted off into space in 1992 and proved that girls can do absolutely anything!','What was Mae Jemison the first to do?',['Black woman in space','Run a marathon','Build a bridge','Teach at school'],'Black woman in space'],
+  ['George Washington Carver','&#x1F468;&#x1F3FE;&#x200D;&#x1F52C;','George Washington Carver was an amazing scientist who discovered over 300 ways to use peanuts! He helped farmers grow better food and created many inventions. He loved plants and science!','What did George Washington Carver discover?',['300 uses for peanuts','How to fly a plane','A new planet','Making music'],'300 uses for peanuts'],
+  ['Serena Williams','&#x1F3BE;','Serena Williams is one of the greatest tennis players ever! She won 23 Grand Slam titles and showed the world that hard work can make your dreams come true. She is a true champion!','What sport made Serena Williams famous?',['Tennis','Soccer','Basketball','Swimming'],'Tennis'],
+  ['Misty Copeland','&#x1FA70;','Misty Copeland became the first Black woman to be a principal dancer at the American Ballet Theatre. She started ballet at age 13 and worked very hard to become a world-famous ballerina!','What art is Misty Copeland famous for?',['Ballet dancing','Painting','Singing','Cooking'],'Ballet dancing']
 ];
-var histOrder=[];
+var hOrd=[];
 
-function genHistory(){
-  if(!histOrder.length)histOrder=shuffle([0,1,2,3,4,5,6,7]);
-  var con=document.getElementById('history-content');
-  var cho=document.getElementById('history-choices');
-  questionCount++;
-  updProg('history',Math.min((questionCount/totalQ)*100,100));
-  var item=HISTORY[histOrder[(questionCount-1)%HISTORY.length]];
-  currentSpeak=item.fact;
-  con.innerHTML='<div class="question-box"><div class="history-person">'+item.emoji+'</div>'
-    +'<div class="history-name">'+item.person+'</div></div>'
-    +'<div class="card" style="margin-top:8px"><div class="history-fact">'+item.fact+'</div></div>'
-    +'<div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#764ba2">'+item.q+'</div>';
-  speak(item.person+'. '+item.fact,0.8,1.3);
-  var opts=shuffle(item.c.slice());
-  cho.innerHTML=opts.map(function(o){
-    var oe=o.replace(/"/g,'&quot;');
-    var ae=item.a.replace(/"/g,'&quot;');
-    return '<button class="choice-btn" onclick="checkHistory(this,this.dataset.v,this.dataset.c)" data-v="'+oe+'" data-c="'+ae+'">'+o+'</button>';
-  }).join('');
+function genH(){
+  if(!hOrd.length)hOrd=shuf([0,1,2,3,4,5,6,7]);
+  var con=document.getElementById('hc');
+  var cho=document.getElementById('hch');
+  qCount++;prog('hp',Math.min((qCount/TQ)*100,100));
+  var item=HST[hOrd[(qCount-1)%HST.length]];
+  curSpeak=item[2];
+  con.innerHTML='<div class="question-box"><div class="hero-icon">'+item[1]+'</div><div class="hero-name">'+item[0]+'</div></div><div class="card" style="margin-top:8px"><div class="hero-fact">'+item[2]+'</div></div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#764ba2">'+item[3]+'</div>';
+  say(item[0]+'. '+item[2],0.8,1.3);
+  cho.innerHTML=shuf(item[4].slice()).map(function(o){return '<button class="choice-btn" onclick="chk(this)" data-v="'+o+'" data-c="'+item[5]+'" data-ctx="history">'+o+'</button>';}).join('');
 }
 
-function checkHistory(btn,chosen,correct){
-  document.querySelectorAll('#history-choices .choice-btn').forEach(function(b){b.onclick=null;});
-  if(chosen===correct){
-    btn.classList.add('correct');addScore(3);showFeedback(true);
-    speak('Wonderful! You know your history! You are so smart!',0.9,1.5);
-  }else{
-    btn.classList.add('wrong');
-    document.querySelectorAll('#history-choices .choice-btn').forEach(function(b){if(b.dataset.v===correct)b.classList.add('correct');});
-    speak('Good try! The answer is '+correct,0.9,1.4);showFeedback(false);
-  }
-  setTimeout(function(){if(questionCount<totalQ)genHistory();else showCompletion();},2200);
+function chkH(btn,v,c){
+  document.querySelectorAll('#hch .choice-btn').forEach(function(b){b.onclick=null;});
+  if(v===c){btn.classList.add('correct');addSc(3);fb(true);say('Wonderful! You know your history! You are so smart!',0.9,1.5);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#hch .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
+  setTimeout(function(){if(qCount<TQ)genH();else showDone();},2200);
 }
 
-var AI_DATA=[
-  {topic:'What is AI?',emoji:'🤖',
-   explain:'AI stands for Artificial Intelligence! It means teaching computers to think and learn, just like how YOU learn new things at school. AI helps computers see pictures, understand words, and answer questions!',
-   q:'What does AI stand for?',c:['Artificial Intelligence','Amazing Ideas','Animal Island','Art and Imagination'],a:'Artificial Intelligence'},
-  {topic:'How does AI learn?',emoji:'📚',
-   explain:'AI learns by looking at LOTS and LOTS of examples. Just like you learned the alphabet by practicing over and over, AI learns by studying millions of pictures, words, and sounds!',
-   q:'How does AI learn new things?',c:['From lots of examples','By going to school','By watching TV','By sleeping'],a:'From lots of examples'},
-  {topic:'AI can see pictures!',emoji:'👁️',
-   explain:'AI can look at a picture and tell you what is in it. Show AI a picture of a dog, and it says That is a dog! This is called Image Recognition. Is that not so cool?',
-   q:'What can AI do with pictures?',c:['Recognize what is in them','Eat them up','Draw them bigger','Print them out'],a:'Recognize what is in them'},
-  {topic:'AI talks to us!',emoji:'💬',
-   explain:'Some AI can understand your words and talk back to you! Voice assistants use AI. When you ask them a question, AI helps understand what you said and finds a good answer for you!',
-   q:'What do voice assistants use to work?',c:['Artificial Intelligence','Magic spells','Invisible friends','Telephone wires'],a:'Artificial Intelligence'},
-  {topic:'AI in games!',emoji:'🎮',
-   explain:'AI is used in many video games! When you play a game by yourself, the characters you play against are controlled by AI. The AI helps them make smart decisions, like where to move next!',
-   q:'What does AI control in video games?',c:['Game characters','The screen','The music','The controller'],a:'Game characters'},
-  {topic:'AI helps doctors!',emoji:'🏥',
-   explain:'AI can help doctors look at special pictures called X-rays to see if someone is sick. It is like a super helper that looks very carefully at pictures. AI helps make sure people get the right care!',
-   q:'How does AI help doctors?',c:['By looking at X-rays','By giving medicine','By cooking food','By driving cars'],a:'By looking at X-rays'},
-  {topic:'Be smart with AI!',emoji:'🛡️',
-   explain:'AI is a helpful tool, just like a pencil or calculator. But it can make mistakes, so always have a grown-up help you use it. Never share your name, address, or phone number with any AI app!',
-   q:'What should you do when using AI?',c:['Have a grown-up help you','Use it all alone','Share all your info','Trust everything it says'],a:'Have a grown-up help you'},
-  {topic:'YOU could build AI!',emoji:'🌟',
-   explain:'You could grow up to be an AI scientist! People who build AI are called engineers and data scientists. If you love math, science, and solving puzzles, you might build amazing AI robots and programs one day!',
-   q:'What could you be if you help build AI?',c:['An engineer or scientist','A chef','A pilot','A firefighter'],a:'An engineer or scientist'}
+var AID=[
+  ['What is AI?','&#x1F916;','AI stands for Artificial Intelligence! It means teaching computers to think and learn, just like how YOU learn at school. AI helps computers see pictures, understand words, and answer questions!','What does AI stand for?',['Artificial Intelligence','Amazing Ideas','Animal Island','Art and Imagination'],'Artificial Intelligence'],
+  ['How does AI learn?','&#x1F4DA;','AI learns by looking at LOTS and LOTS of examples. Just like you learned the alphabet by practicing over and over, AI learns by studying millions of pictures, words, and sounds!','How does AI learn?',['From lots of examples','By going to school','By watching TV','By sleeping'],'From lots of examples'],
+  ['AI can see pictures!','&#x1F441;&#xFE0F;','AI can look at a picture and tell you what is in it! If you show AI a picture of a dog, it says That is a dog! This is called Image Recognition. Is that not cool?','What can AI do with pictures?',['Recognize what is in them','Eat them up','Draw them bigger','Print them out'],'Recognize what is in them'],
+  ['AI talks to us!','&#x1F4AC;','Some AI can understand your words and talk back to you! Voice assistants use AI. When you ask them a question, AI helps understand what you said and finds an answer for you!','What do voice assistants use?',['Artificial Intelligence','Magic spells','Invisible friends','Telephone wires'],'Artificial Intelligence'],
+  ['AI in games!','&#x1F3AE;','AI is in many video games! When you play alone, the characters you play against are controlled by AI. The AI helps them make smart decisions, like where to move next!','What does AI control in video games?',['Game characters','The screen','The music','The controller'],'Game characters'],
+  ['AI helps doctors!','&#x1F3E5;','AI can help doctors look at X-rays to check if someone is sick. It is like a super helper that looks very carefully at pictures. AI helps make sure people get the right care!','How does AI help doctors?',['By looking at X-rays','By giving medicine','By cooking food','By driving cars'],'By looking at X-rays'],
+  ['Be smart with AI!','&#x1F6E1;&#xFE0F;','AI is a helpful tool like a pencil or calculator. But it can make mistakes, so always have a grown-up help you use it. Never share your name, address, or phone number with any AI!','What should you do with AI?',['Have a grown-up help you','Use it all alone','Share all your info','Trust everything it says'],'Have a grown-up help you'],
+  ['You could build AI!','&#x1F31F;','You could grow up to be an AI scientist! People who build AI are called engineers. If you love math, science, and solving puzzles, you might build amazing AI robots and programs one day!','What could you become if you build AI?',['An engineer or scientist','A chef','A pilot','A firefighter'],'An engineer or scientist']
 ];
 
-function genAI(){
-  var con=document.getElementById('ai-content');
-  var cho=document.getElementById('ai-choices');
-  questionCount++;
-  updProg('ai',Math.min((questionCount/AI_DATA.length)*100,100));
-  var item=AI_DATA[(questionCount-1)%AI_DATA.length];
-  currentSpeak=item.explain;
-  con.innerHTML='<div class="question-box"><div class="history-person">'+item.emoji+'</div>'
-    +'<div class="history-name">'+item.topic+'</div></div>'
-    +'<div class="ai-scenario">'+item.explain+'</div>'
-    +'<div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#9B59B6">'+item.q+'</div>';
-  speak(item.topic+'. '+item.explain,0.8,1.3);
-  var opts=shuffle(item.c.slice());
-  cho.innerHTML=opts.map(function(o){
-    var oe=o.replace(/"/g,'&quot;');
-    var ae=item.a.replace(/"/g,'&quot;');
-    return '<button class="choice-btn" onclick="checkAI(this,this.dataset.v,this.dataset.c)" data-v="'+oe+'" data-c="'+ae+'">'+o+'</button>';
-  }).join('');
+function genA(){
+  var con=document.getElementById('ac');
+  var cho=document.getElementById('ach');
+  qCount++;prog('ap',Math.min((qCount/AID.length)*100,100));
+  var item=AID[(qCount-1)%AID.length];
+  curSpeak=item[2];
+  con.innerHTML='<div class="question-box"><div class="hero-icon">'+item[1]+'</div><div class="hero-name">'+item[0]+'</div></div><div class="ai-box">'+item[2]+'</div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#9B59B6">'+item[3]+'</div>';
+  say(item[0]+'. '+item[2],0.8,1.3);
+  cho.innerHTML=shuf(item[4].slice()).map(function(o){return '<button class="choice-btn" onclick="chk(this)" data-v="'+o+'" data-c="'+item[5]+'" data-ctx="ai">'+o+'</button>';}).join('');
 }
 
-function checkAI(btn,chosen,correct){
-  document.querySelectorAll('#ai-choices .choice-btn').forEach(function(b){b.onclick=null;});
-  if(chosen===correct){
-    btn.classList.add('correct');addScore(3);showFeedback(true);
-    speak('Amazing! You are so smart about technology!',0.9,1.5);
-  }else{
-    btn.classList.add('wrong');
-    document.querySelectorAll('#ai-choices .choice-btn').forEach(function(b){if(b.dataset.v===correct)b.classList.add('correct');});
-    speak('Good try! The answer is '+correct,0.9,1.4);showFeedback(false);
+function chkA(btn,v,c){
+  document.querySelectorAll('#ach .choice-btn').forEach(function(b){b.onclick=null;});
+  if(v===c){btn.classList.add('correct');addSc(3);fb(true);say('Amazing! You are so smart about technology!',0.9,1.5);}
+  else{btn.classList.add('wrong');document.querySelectorAll('#ach .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
+  setTimeout(function(){if(qCount<AID.length)genA();else showDone();},2000);
+}
+
+function chk(b){
+  var v=b.dataset.v,c=b.dataset.c,ctx=b.dataset.ctx;
+  var pfx=ctx==='history'?'h':ctx==='ai'?'a':ctx==='math'?'m':'r';
+  if(pfx==='r')chkR(b,v,c);
+  else if(pfx==='m')chkM(b,v,c);
+  else if(pfx==='h')chkH(b,v,c);
+  else chkA(b,v,c);
   }
-  setTimeout(function(){if(questionCount<AI_DATA.length)genAI();else showCompletion();},2000);
-}
-var DRAW_WORDS=[
-  'a cat 🐱','a dog 🐶','the sun ☀️','a house 🏠','a tree 🌳',
-  'a flower 🌸','a star ⭐','a heart ❤️','a bird 🐦','a fish 🐟',
-  'a rainbow 🌈','a cloud ☁️','a robot 🤖','a rocket ship 🚀',
-  'a book 📚','your family 👪','your dream 🌟','a butterfly 🦋'
-];
-var COLORS=['#000000','#e53935','#FF8C42','#FFD93D','#6BCB77','#4ECDC4','#2196F3','#9B59B6','#FF6B9D','#795548','#FFFFFF'];
-var curColor='#000000',curBrush=6,drawing=false,isEraser=false,lastX=0,lastY=0;
-var drawCanvas,ctx;
+var DWDS=['a cat &#x1F431;','a dog &#x1F436;','the sun &#x2600;&#xFE0F;','a house &#x1F3E0;','a tree &#x1F333;','a flower &#x1F338;','a star &#x2B50;','a heart &#x2764;&#xFE0F;','a bird &#x1F426;','a fish &#x1F41F;','a rainbow &#x1F308;','a cloud &#x2601;&#xFE0F;','a robot &#x1F916;','a rocket &#x1F680;','a book &#x1F4DA;','your family &#x1F46A;'];
+var CLRS=['#000000','#e53935','#FF8C42','#FFD93D','#6BCB77','#4ECDC4','#2196F3','#9B59B6','#FF6B9D','#795548','#FFFFFF'];
+var cCol='#000000',cBr=6,drw=false,ersr=false,lx=0,ly=0,dv,dx;
 
-function initDrawing(){
-  drawCanvas=document.getElementById('draw-canvas');
-  ctx=drawCanvas.getContext('2d');
-  var maxW=Math.min(window.innerWidth-48,620);
-  drawCanvas.width=maxW;
-  drawCanvas.height=Math.round(maxW*0.55);
-  ctx.fillStyle='#FAFAFA';
-  ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
-  ctx.lineCap='round';ctx.lineJoin='round';
+function initDraw(){
+  dv=document.getElementById('canvas');
+  dx=dv.getContext('2d');
+  var mw=Math.min(window.innerWidth-48,620);
+  dv.width=mw;dv.height=Math.round(mw*0.55);
+  dx.fillStyle='#FAFAFA';dx.fillRect(0,0,dv.width,dv.height);
+  dx.lineCap='round';dx.lineJoin='round';
 
-  var pal=document.getElementById('color-palette');
-  pal.innerHTML=COLORS.map(function(c){
-    var act=c===curColor?' active':'';
-    var bdr=c==='#FFFFFF'?'#ccc':c;
-    return '<div class="color-swatch'+act+'" style="background:'+c+';border-color:'+bdr+'" onclick="setColor(''+c+'')" data-color="'+c+'"></div>';
+  var pal=document.getElementById('pal');
+  pal.innerHTML=CLRS.map(function(c){
+    var act=c===cCol?' active':'';
+    var bdr=c==='#FFFFFF'?'border-color:#ccc':'border-color:'+c;
+    return '<div class="swatch'+act+'" style="background:'+c+';'+bdr+'" onclick="pickColor(this,''+c+'')" data-c="'+c+'"></div>';
   }).join('');
 
-  var bDiv=document.getElementById('brush-sizes');
-  bDiv.innerHTML='<span style="font-size:13px;color:#666">Size:</span>'+
-    [3,6,12,20].map(function(s){
-      var act=s===curBrush?' active':'';
-      return '<button class="brush-btn'+act+'" onclick="setBrush('+s+')" data-size="'+s+'"><div style="width:'+s+'px;height:'+s+'px;background:#333;border-radius:50%"></div></button>';
-    }).join('');
+  var bsz=document.getElementById('bsz');
+  bsz.innerHTML='<span style="font-size:13px;color:#666">Size:</span>'+[3,6,12,20].map(function(s){
+    var act=s===cBr?' active':'';
+    return '<button class="bbtn'+act+'" onclick="pickBrush(this,'+s+')" data-s="'+s+'"><div style="width:'+s+'px;height:'+s+'px;background:#333;border-radius:50%"></div></button>';
+  }).join('');
 
-  drawCanvas.onmousedown=function(e){drawing=true;lastX=e.offsetX;lastY=e.offsetY;dot(lastX,lastY);};
-  drawCanvas.onmousemove=function(e){if(drawing)drawLine(e.offsetX,e.offsetY);};
-  drawCanvas.onmouseup=function(){drawing=false;};
-  drawCanvas.onmouseleave=function(){drawing=false;};
-
-  function getTouchPos(e){
-    var r=drawCanvas.getBoundingClientRect();
-    return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top};
-  }
-  drawCanvas.ontouchstart=function(e){e.preventDefault();var p=getTouchPos(e);drawing=true;lastX=p.x;lastY=p.y;dot(p.x,p.y);};
-  drawCanvas.ontouchmove=function(e){e.preventDefault();if(!drawing)return;var p=getTouchPos(e);drawLine(p.x,p.y);};
-  drawCanvas.ontouchend=function(){drawing=false;};
-
-  newDrawWord();
+  dv.onmousedown=function(e){drw=true;lx=e.offsetX;ly=e.offsetY;dot(lx,ly);};
+  dv.onmousemove=function(e){if(drw)dline(e.offsetX,e.offsetY);};
+  dv.onmouseup=function(){drw=false;};
+  dv.onmouseleave=function(){drw=false;};
+  dv.ontouchstart=function(e){
+    e.preventDefault();
+    var r=dv.getBoundingClientRect(),t=e.touches[0];
+    drw=true;lx=t.clientX-r.left;ly=t.clientY-r.top;dot(lx,ly);
+  };
+  dv.ontouchmove=function(e){
+    e.preventDefault();
+    if(!drw)return;
+    var r=dv.getBoundingClientRect(),t=e.touches[0];
+    dline(t.clientX-r.left,t.clientY-r.top);
+  };
+  dv.ontouchend=function(){drw=false;};
+  newWord();
 }
 
-function dot(x,y){
-  ctx.beginPath();
-  ctx.arc(x,y,isEraser?15:curBrush/2,0,Math.PI*2);
-  ctx.fillStyle=isEraser?'#FAFAFA':curColor;
-  ctx.fill();
+function dot(x,y){dx.beginPath();dx.arc(x,y,ersr?15:cBr/2,0,Math.PI*2);dx.fillStyle=ersr?'#FAFAFA':cCol;dx.fill();}
+function dline(x,y){dx.beginPath();dx.moveTo(lx,ly);dx.lineTo(x,y);dx.strokeStyle=ersr?'#FAFAFA':cCol;dx.lineWidth=ersr?30:cBr;dx.stroke();lx=x;ly=y;}
+
+function pickColor(el,c){
+  cCol=c;ersr=false;
+  document.querySelectorAll('.swatch').forEach(function(s){s.classList.toggle('active',s.dataset.c===c);});
+  var eb=document.getElementById('ebtn');
+  eb.style.borderColor='#888';eb.style.color='#555';eb.textContent='&#x2B1C; Eraser';
 }
 
-function drawLine(x,y){
-  ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);
-  ctx.strokeStyle=isEraser?'#FAFAFA':curColor;
-  ctx.lineWidth=isEraser?30:curBrush;
-  ctx.stroke();
-  lastX=x;lastY=y;
+function pickBrush(el,s){
+  cBr=s;
+  document.querySelectorAll('.bbtn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.s)===s);});
 }
 
-function setColor(c){
-  curColor=c;isEraser=false;
-  document.querySelectorAll('.color-swatch').forEach(function(s){s.classList.toggle('active',s.dataset.color===c);});
-  var eb=document.getElementById('eraser-btn');
-  eb.style.borderColor='#888';eb.style.color='#555';eb.textContent='⬜ Eraser';
+function toggleE(){
+  ersr=!ersr;
+  var eb=document.getElementById('ebtn');
+  eb.style.borderColor=ersr?'#e53935':'#888';
+  eb.style.color=ersr?'#e53935':'#555';
+  eb.innerHTML=ersr?'&#x270F;&#xFE0F; Draw':'&#x2B1C; Eraser';
 }
 
-function setBrush(s){
-  curBrush=s;
-  document.querySelectorAll('.brush-btn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.size)===s);});
+function clearC(){if(dx){dx.fillStyle='#FAFAFA';dx.fillRect(0,0,dv.width,dv.height);}}
+
+function newWord(){
+  var w=DWDS[Math.floor(Math.random()*DWDS.length)];
+  document.getElementById('dw').innerHTML=w;
+  say('Draw '+w.replace(/&#x[0-9A-F]+;/gi,''),0.9,1.5);
 }
 
-function toggleEraser(){
-  isEraser=!isEraser;
-  var eb=document.getElementById('eraser-btn');
-  eb.style.borderColor=isEraser?'#e53935':'#888';
-  eb.style.color=isEraser?'#e53935':'#555';
-  eb.textContent=isEraser?'✏️ Draw':'⬜ Eraser';
+function sayWord(){
+  var w=document.getElementById('dw').textContent||document.getElementById('dw').innerText;
+  say('Draw '+w,0.9,1.5);
 }
 
-function clearCanvas(){
-  if(ctx){ctx.fillStyle='#FAFAFA';ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height);}
-}
-
-function newDrawWord(){
-  var w=DRAW_WORDS[Math.floor(Math.random()*DRAW_WORDS.length)];
-  document.getElementById('draw-word').textContent=w;
-  speak('Draw '+w,0.9,1.5);
-}
-
-function speakDrawWord(){
-  speak('Draw '+document.getElementById('draw-word').textContent,0.9,1.5);
-}
-
-function showCompletion(){
+function showDone(){
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  var cs=document.getElementById('completion-screen');
-  cs.style.display='flex';cs.classList.add('active');
-  document.getElementById('final-score-display').textContent=score;
-  var stars=document.getElementById('completion-stars');
+  var d=document.getElementById('done');d.style.display='flex';d.classList.add('active');
+  document.getElementById('ds').textContent=score;
   var n=Math.min(Math.ceil(score/4),10);
-  var html='';
-  for(var i=0;i<n;i++)html+='<span style="font-size:28px;display:inline-block;animation:pop 0.4s ease '+( i*0.1 )+'s both">⭐</span>';
-  stars.innerHTML=html;
-  var msg=score>20?'You are absolutely AMAZING!':score>10?'You did a great job!':'You are learning so much!';
-  speak('You finished! '+msg+' You scored '+score+' stars!',0.9,1.5);
-  doConfetti();setTimeout(doConfetti,800);setTimeout(doConfetti,1600);
+  var h='';for(var i=0;i<n;i++)h+='<span>&#x2B50;</span>';
+  document.getElementById('dstars').innerHTML=h;
+  var msg=score>20?'You are absolutely AMAZING!':score>10?'Great job!':'You are learning so much!';
+  say('You finished! '+msg+' You scored '+score+' stars!',0.9,1.5);
+  confetti();
+  setTimeout(confetti,800);
+  setTimeout(confetti,1600);
 }
 
-function doConfetti(){
+function confetti(){
   var cols=['#FF6B9D','#FFD93D','#6BCB77','#4ECDC4','#9B59B6','#FF8C42'];
   for(var i=0;i<20;i++){
-    var c=document.createElement('div');
-    c.className='confetti-piece';
-    var l=Math.floor(Math.random()*100);
-    var bg=cols[Math.floor(Math.random()*cols.length)];
-    var del=(Math.random()*1.5).toFixed(2);
-    var dur=(1.5+Math.random()*2).toFixed(2);
-    var rot=Math.floor(Math.random()*360);
-    c.style.left=l+'%';
-    c.style.background=bg;
-    c.style.animationDelay=del+'s';
-    c.style.animationDuration=dur+'s';
-    c.style.transform='rotate('+rot+'deg)';
-    document.body.appendChild(c);
-    (function(el){setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},4000);})(c);
+    var el=document.createElement('div');
+    el.className='confetti';
+    el.style.left=Math.floor(Math.random()*100)+'%';
+    el.style.background=cols[Math.floor(Math.random()*cols.length)];
+    el.style.animationDelay=(Math.random()*1.5).toFixed(2)+'s';
+    el.style.animationDuration=(1.5+Math.random()*2).toFixed(2)+'s';
+    el.style.transform='rotate('+Math.floor(Math.random()*360)+'deg)';
+    document.body.appendChild(el);
+    (function(x){setTimeout(function(){if(x.parentNode)x.parentNode.removeChild(x);},4000);})(el);
   }
 }
 
 window.onload=function(){
-  voices=synth.getVoices();
+  voc=syn.getVoices();
   setTimeout(function(){
-    speak('Hi! I am Chipmunk! Welcome to Learning with Chipmunk! Tap a subject to start learning!',0.85,1.5);
+    say('Hi! I am Chipmunk! Welcome to Learning with Chipmunk! Tap a subject to start learning!',0.85,1.5);
   },600);
 };
 </script>
 </body>
 </html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Learning with Chipmunk 🐿️</title>
-<style>
-  :root {
-    --primary: #FF6B9D; --secondary: #FFD93D; --accent: #6BCB77;
-    --purple: #9B59B6; --blue: #4ECDC4; --orange: #FF8C42;
-    --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --card: rgba(255,255,255,0.95); --shadow: 0 8px 32px rgba(0,0,0,0.18);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; background: var(--bg); min-height: 100vh; overflow-x: hidden; }
-  #header { background: linear-gradient(90deg,#FF6B9D,#FFD93D,#6BCB77,#4ECDC4,#9B59B6); background-size: 400% 400%; animation: rainbow 4s ease infinite; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; }
-  @keyframes rainbow { 0%{background-position:0%} 50%{background-position:100%} 100%{background-position:0%} }
-  #header h1 { font-size: clamp(16px,4vw,24px); color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
-  #score-display { background: white; border-radius: 20px; padding: 6px 14px; font-size: clamp(12px,3vw,16px); font-weight: bold; color: #764ba2; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-  #chipmunk-mascot { font-size: clamp(28px,6vw,48px); animation: bounce 1s infinite; cursor: pointer; }
-  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-  #main-menu { display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
-  #main-menu h2 { font-size: clamp(20px,5vw,36px); color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.4); text-align:center; margin-bottom:8px; }
-  .menu-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; width: 100%; max-width: 600px; }
-  .menu-btn { background: white; border-radius: 20px; padding: 18px 12px; text-align: center; cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; border: 4px solid transparent; user-select: none; }
-  .menu-btn:active { transform: scale(0.95); }
-  .menu-btn:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
-  .menu-btn .icon { font-size: clamp(32px,8vw,52px); display: block; margin-bottom: 8px; }
-  .menu-btn .label { font-size: clamp(13px,3.5vw,18px); font-weight: bold; color: #333; }
-  .menu-btn.reading { border-color: var(--primary); } .menu-btn.math { border-color: var(--secondary); }
-  .menu-btn.history { border-color: var(--orange); } .menu-btn.ai { border-color: var(--purple); }
-  .menu-btn.drawing { border-color: var(--accent); }
-  .screen { display: none; flex-direction: column; align-items: center; padding: 16px; min-height: calc(100vh - 70px); }
-  .screen.active { display: flex; }
-  .card { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: var(--shadow); width: 100%; max-width: 680px; margin-bottom: 16px; }
-  .screen-title { font-size: clamp(18px,5vw,28px); font-weight: bold; margin-bottom: 16px; text-align: center; }
-  .back-btn { background: white; border: 3px solid #764ba2; color: #764ba2; border-radius: 30px; padding: 8px 20px; font-size: 15px; font-family: inherit; cursor: pointer; font-weight: bold; margin-bottom: 12px; align-self: flex-start; transition: all 0.2s; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
-  .back-btn:active { transform: scale(0.95); }
-  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 12px; }
-  .choice-btn { background: linear-gradient(135deg, #f6f7fa, #e9ecf1); border: 3px solid #ccc; border-radius: 16px; padding: 14px 8px; font-size: clamp(14px,4vw,20px); font-family: inherit; cursor: pointer; transition: all 0.2s; font-weight: bold; color: #333; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
-  .choice-btn:active { transform: scale(0.95); }
-  .choice-btn.correct { background: linear-gradient(135deg,#6BCB77,#4CAF50); border-color: #388e3c; color: white; transform: scale(1.05); }
-  .choice-btn.wrong { background: linear-gradient(135deg,#ff6b6b,#e53935); border-color: #c62828; color: white; }
-  .choice-btn:hover:not(.correct):not(.wrong) { background: linear-gradient(135deg,#FFD93D,#FFC107); border-color: #FF8C42; }
-  .question-box { background: linear-gradient(135deg,#667eea,#764ba2); border-radius: 20px; padding: 20px; text-align: center; color: white; margin-bottom: 16px; box-shadow: var(--shadow); }
-  .question-text { font-size: clamp(20px,6vw,40px); font-weight: bold; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); line-height: 1.3; }
-  .question-sub { font-size: clamp(12px,3vw,16px); margin-top: 8px; opacity: 0.9; }
-  #feedback-overlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 999; pointer-events: none; transition: transform 0.3s; font-size: clamp(40px,12vw,80px); text-align: center; }
-  #feedback-overlay.show { transform: translate(-50%,-50%) scale(1); }
-  .progress-wrap { background: rgba(255,255,255,0.3); border-radius: 10px; height: 14px; width: 100%; margin-bottom: 12px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg,#6BCB77,#FFD93D); transition: width 0.4s; }
-  .letter-display { font-size: clamp(60px,18vw,120px); font-weight: bold; text-align: center; padding: 20px; line-height:1; }
-  .vowel { color: var(--primary); } .consonant { color: var(--blue); }
-  .sentence-display { font-size: clamp(16px,4vw,24px); text-align: center; padding: 10px; line-height: 1.6; }
-  .math-display { font-size: clamp(32px,9vw,64px); font-weight: bold; text-align: center; padding: 16px; color: #333; }
-  .math-objects { font-size: clamp(24px,7vw,48px); text-align: center; letter-spacing: 4px; margin: 8px 0; }
-  .history-person { font-size: clamp(40px,10vw,64px); text-align: center; margin: 8px 0; }
-  .history-name { font-size: clamp(18px,5vw,28px); font-weight: bold; color: #764ba2; text-align:center; }
-  .history-fact { font-size: clamp(13px,3.5vw,18px); line-height: 1.7; text-align: center; padding: 8px; color: #333; }
-  .ai-scenario { background: linear-gradient(135deg,#9B59B6,#6c3483); color: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; font-size: clamp(14px,3.5vw,18px); line-height:1.7; }
-  #draw-canvas { border-radius: 16px; box-shadow: var(--shadow); touch-action: none; cursor: crosshair; max-width: 100%; display: block; }
-  .color-palette { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
-  .color-swatch { width: clamp(28px,6vw,40px); height: clamp(28px,6vw,40px); border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-  .color-swatch.active { border-color: #333; transform: scale(1.25); }
-  .brush-sizes { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 6px 0; }
-  .brush-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #999; background: white; cursor: pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s; }
-  .brush-btn.active { border-color: #764ba2; background: #f3e5ff; }
-  .draw-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
-  .draw-btn { background: white; border: 2px solid #ccc; border-radius: 12px; padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-  .draw-btn:active { transform: scale(0.95); }
-  .draw-word-prompt { font-size: clamp(16px,4vw,22px); font-weight: bold; text-align: center; color: #764ba2; background: #f3e5ff; border-radius: 12px; padding: 10px 16px; margin-bottom: 8px; }
-  .voice-btn { background: linear-gradient(135deg,#FF6B9D,#ff4081); color: white; border: none; border-radius: 50%; width: 52px; height: 52px; font-size: 22px; cursor: pointer; box-shadow: 0 4px 12px rgba(255,64,129,0.4); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; }
-  .voice-btn:active { transform: scale(0.9); }
-  .voice-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0; }
-  .level-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
-  .level-badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-  .level-badge.active { box-shadow: 0 2px 8px rgba(0,0,0,0.2); transform: scale(1.05); }
-  .confetti-piece { position: fixed; width: 10px; height: 10px; border-radius: 2px; animation: fall 2.5s linear forwards; pointer-events: none; z-index: 9999; }
-  @keyframes fall { 0%{top:-10px;opacity:1} 100%{top:110vh;opacity:0} }
-  @media (min-width: 768px) { .menu-grid { grid-template-columns: repeat(3,1fr); } }
-  #completion-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 70px); padding: 20px; text-align: center; }
-  #completion-screen.active { display: flex; }
-  .completion-card { background: white; border-radius: 30px; padding: 30px; box-shadow: var(--shadow); max-width: 500px; width: 100%; }
-  .big-emoji { font-size: 80px; animation: bounce 1s infinite; display: block; margin: 0 auto 16px; }
-  .completion-title { font-size: clamp(22px,6vw,36px); font-weight: bold; color: #764ba2; margin-bottom: 8px; }
-  .final-score { font-size: clamp(28px,8vw,52px); font-weight: bold; background: linear-gradient(135deg,#FF6B9D,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .play-again-btn { background: linear-gradient(135deg,#FF6B9D,#764ba2); color: white; border: none; border-radius: 30px; padding: 14px 32px; font-size: 18px; font-family: inherit; cursor: pointer; margin-top: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(118,75,162,0.4); transition: all 0.2s; }
-  .play-again-btn:active { transform: scale(0.95); }
-</style>
-</head>
-<body>
-<div id="feedback-overlay"></div>
-<div id="header">
-  <div id="chipmunk-mascot" onclick="speakChipmunk()">🐿️</div>
-  <h1>Learning with Chipmunk!</h1>
-  <div id="score-display">⭐ <span id="score-val">0</span></div>
-</div>
-<div id="main-menu" class="screen active">
-  <h2>🌟 What do you want to learn today? 🌟</h2>
-  <div class="menu-grid">
-    <div class="menu-btn reading" onclick="openScreen('reading')"><span class="icon">📚</span><span class="label">Reading &amp; Sounds</span></div>
-    <div class="menu-btn math" onclick="openScreen('math')"><span class="icon">🔢</span><span class="label">Fun Math</span></div>
-    <div class="menu-btn history" onclick="openScreen('history')"><span class="icon">✊🏾</span><span class="label">Black History Heroes</span></div>
-    <div class="menu-btn ai" onclick="openScreen('ai')"><span class="icon">🤖</span><span class="label">What is AI?</span></div>
-    <div class="menu-btn drawing" onclick="openScreen('drawing')" style="grid-column:1/-1"><span class="icon">🎨</span><span class="label">Drawing Game</span></div>
-  </div>
-  <div style="margin-top:16px;color:white;font-size:15px;text-align:center;opacity:0.9;">Tap Chipmunk 🐿️ anytime to hear a fun message!</div>
-</div>
-<div id="reading-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
-  <div class="card">
-    <div class="screen-title" style="color:#d63384;">📚 Reading with Chipmunk!</div>
-    <div class="level-badges">
-      <div id="lvl-sounds" class="level-badge active" style="background:#ffecf1;color:#d63384;border-color:#d63384" onclick="setReadingLevel('sounds')">🔊 Sounds</div>
-      <div id="lvl-vowels" class="level-badge" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setReadingLevel('vowels')">🅰️ Vowels</div>
-      <div id="lvl-words" class="level-badge" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setReadingLevel('words')">📝 Words</div>
-      <div id="lvl-sentences" class="level-badge" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setReadingLevel('sentences')">📖 Sentences</div>
-    </div>
-    <div class="progress-wrap"><div class="progress-fill" id="reading-progress" style="width:0%"></div></div>
-    <div id="reading-content"></div>
-    <div class="choices" id="reading-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button><span style="font-size:14px;color:#666;">Tap to hear it!</span></div>
-  </div>
-</div>
-<div id="math-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
-  <div class="card">
-    <div class="screen-title" style="color:#e67e22;">🔢 Math Fun!</div>
-    <div class="level-badges">
-      <div id="lvl-counting" class="level-badge active" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setMathLevel('counting')">🍎 Counting</div>
-      <div id="lvl-addition" class="level-badge" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setMathLevel('addition')">➕ Adding</div>
-      <div id="lvl-subtraction" class="level-badge" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setMathLevel('subtraction')">➖ Taking Away</div>
-      <div id="lvl-shapes" class="level-badge" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6" onclick="setMathLevel('shapes')">🔷 Shapes</div>
-    </div>
-    <div class="progress-wrap"><div class="progress-fill" id="math-progress" style="width:0%"></div></div>
-    <div id="math-content"></div>
-    <div class="choices" id="math-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
-  </div>
-</div>
-<div id="history-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
-  <div class="card">
-    <div class="screen-title" style="color:#e67e22;">✊🏾 Black History Heroes!</div>
-    <div class="progress-wrap"><div class="progress-fill" id="history-progress" style="width:0%"></div></div>
-    <div id="history-content"></div>
-    <div class="choices" id="history-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
-  </div>
-</div>
-<div id="ai-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
-  <div class="card">
-    <div class="screen-title" style="color:#9B59B6;">🤖 What is Artificial Intelligence?</div>
-    <div class="progress-wrap"><div class="progress-fill" id="ai-progress" style="width:0%"></div></div>
-    <div id="ai-content"></div>
-    <div class="choices" id="ai-choices"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCurrent()">🔊</button></div>
-  </div>
-</div>
-<div id="drawing-screen" class="screen">
-  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
-  <div class="card" style="padding:14px;">
-    <div class="screen-title" style="color:#198754;">🎨 Drawing with Chipmunk!</div>
-    <div class="draw-word-prompt">Draw: <span id="draw-word">a cat</span></div>
-    <div style="display:flex;justify-content:center;"><canvas id="draw-canvas" width="620" height="340"></canvas></div>
-    <div class="color-palette" id="color-palette"></div>
-    <div class="brush-sizes" id="brush-sizes"></div>
-    <div class="draw-controls">
-      <button class="draw-btn" onclick="clearCanvas()" style="border-color:#e53935;color:#e53935;">🗑️ Clear</button>
-      <button class="draw-btn" onclick="toggleEraser()" id="eraser-btn" style="border-color:#888;color:#555;">⬜ Eraser</button>
-      <button class="draw-btn" onclick="newDrawWord()" style="border-color:#198754;color:#198754;">🔀 New Word</button>
-      <button class="draw-btn" onclick="speakDrawWord()" style="border-color:#0d6efd;color:#0d6efd;">🔊 Say It</button>
-    </div>
-    <div style="text-align:center;margin-top:8px;font-size:13px;color:#888;">Use your finger or mouse to draw!</div>
-  </div>
-</div>
-<div id="completion-screen">
-  <div class="completion-card">
-    <span class="big-emoji">🎉</span>
-    <div class="completion-title">Amazing Job!</div>
-    <div style="font-size:16px;color:#666;margin-bottom:8px;">You scored</div>
-    <div class="final-score" id="final-score-display">10</div>
-    <div style="font-size:16px;color:#666;margin-top:4px;">stars!</div>
-    <div id="completion-stars" style="display:flex;justify-content:center;gap:4px;margin:8px 0;"></div>
-    <button class="play-again-btn" onclick="goHome()">🏠 Play Again!</button>
-  </div>
-</div>
-<script>
-var score = 0, currentSpeak = '', readingLevel = 'sounds', mathLevel = 'counting', questionCount = 0, totalQ = 8;
-var synth = window.speechSynthesis, voices = [];
-synth.addEventListener('voiceschanged', function(){ voices = synth.getVoices(); });
-setTimeout(function(){ voices = synth.getVoices(); }, 800);
-
-function speak(text, rate, pitch) {
-  rate = rate || 0.85; pitch = pitch || 1.4;
-  synth.cancel();
-  var u = new SpeechSynthesisUtterance(text);
-  var v = voices.find(function(x){ return x.name.includes('Samantha')||x.name.includes('Karen')||x.lang==='en-US'; });
-  if (v) u.voice = v;
-  u.rate = rate; u.pitch = pitch; u.volume = 1;
-  synth.speak(u);
-}
-
-function speakChipmunk() {
-  var msgs = ['Hi friend! I am Chipmunk! Lets learn together!','You are so smart! Keep going!','Wow, you are doing amazing!','Learning is so much fun!','I believe in you! You can do it!','Great job! You are a superstar!'];
-  speak(msgs[Math.floor(Math.random()*msgs.length)], 0.9, 1.6);
-  var el = document.getElementById('chipmunk-mascot');
-  el.style.transform = 'scale(1.5) rotate(15deg)';
-  setTimeout(function(){ el.style.transform = ''; }, 600);
-}
-
-function speakCurrent() { if (currentSpeak) speak(currentSpeak); }
-
-function openScreen(name) {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('main-menu').classList.remove('active');
-  document.getElementById(name+'-screen').classList.add('active');
-  questionCount = 0;
-  if (name==='reading'){ readingLevel='sounds'; updateReadLevelUI(); genReading(); }
-  else if (name==='math'){ mathLevel='counting'; updateMathLevelUI(); genMath(); }
-  else if (name==='history'){ genHistory(); }
-  else if (name==='ai'){ genAI(); }
-  else if (name==='drawing'){ initDrawing(); }
-}
-
-function goHome() {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('completion-screen').classList.remove('active');
-  document.getElementById('completion-screen').style.display = 'none';
-  document.getElementById('main-menu').classList.add('active');
-  speak('Welcome back! What do you want to learn today?', 0.9, 1.5);
-}
-
-function showFeedback(ok) {
-  var el = document.getElementById('feedback-overlay');
-  var stars = ['⭐','🌟','✨','🎉','🏆','🎊'];
-  el.textContent = ok ? stars[Math.floor(Math.random()*stars.length)] : '💪';
-  el.classList.add('show');
-  if (ok) doConfetti();
-  setTimeout(function(){ el.classList.remove('show'); }, 1000);
-}
-
-function addScore(pts) {
-  score += pts;
-  document.getElementById('score-val').textContent = score;
-  var el = document.getElementById('score-display');
-  el.style.transform = 'scale(1.3)';
-  setTimeout(function(){ el.style.transform=''; }, 300);
-}
-
-function updProgress(id, val) {
-  document.getElementById(id+'-progress').style.width = val + '%';
-}
-
-function shuffle(arr) {
-  var a = arr.slice();
-  for (var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
-  return a;
-}
-// ===== READING =====
-var SOUNDS = [
-  {l:'A',s:'Ah',v:true},{l:'B',s:'Buh',v:false},{l:'C',s:'Kuh',v:false},{l:'D',s:'Duh',v:false},
-  {l:'E',s:'Eh',v:true},{l:'F',s:'Fff',v:false},{l:'G',s:'Guh',v:false},{l:'H',s:'Huh',v:false},
-  {l:'I',s:'Ih',v:true},{l:'J',s:'Juh',v:false},{l:'K',s:'Kuh',v:false},{l:'L',s:'Lll',v:false},
-  {l:'M',s:'Mmm',v:false},{l:'N',s:'Nnn',v:false},{l:'O',s:'Oh',v:true},{l:'P',s:'Puh',v:false},
-  {l:'R',s:'Rrr',v:false},{l:'S',s:'Sss',v:false},{l:'T',s:'Tuh',v:false},{l:'U',s:'Uh',v:true},
-  {l:'V',s:'Vvv',v:false},{l:'W',s:'Wuh',v:false},{l:'Y',s:'Yuh',v:false},{l:'Z',s:'Zzz',v:false}
-];
-var VOWELS = ['A','E','I','O','U'];
-var WORDS = [
-  {w:'cat',p:'🐱'},{w:'dog',p:'🐶'},{w:'sun',p:'☀️'},{w:'hat',p:'🎩'},
-  {w:'big',p:'🐘'},{w:'cup',p:'🥤'},{w:'bed',p:'🛏️'},{w:'fox',p:'🦊'},
-  {w:'bug',p:'🐛'},{w:'hop',p:'🐸'},{w:'run',p:'🏃'},{w:'sit',p:'🪑'},
-  {w:'red',p:'🔴'},{w:'fun',p:'🎉'},{w:'map',p:'🗺️'},{w:'log',p:'🪵'}
-];
-var SENTS = [
-  {s:'The cat sat on the mat.',q:'Where did the cat sit?',c:['on the mat','in the box','on the tree','by the lake'],a:'on the mat'},
-  {s:'The dog ran in the park.',q:'Where did the dog run?',c:['in the park','at school','in the house','at the beach'],a:'in the park'},
-  {s:'The sun is big and hot.',q:'What is the sun like?',c:['big and hot','small and cold','blue and round','soft and fluffy'],a:'big and hot'},
-  {s:'I love to read books.',q:'What does the person love?',c:['to read books','to eat cake','to play games','to sleep'],a:'to read books'},
-  {s:'The bird has pretty wings.',q:'What does the bird have?',c:['pretty wings','sharp claws','a big hat','red shoes'],a:'pretty wings'},
-  {s:'We play outside in the rain.',q:'When do we play outside?',c:['in the rain','at night','after dinner','in winter'],a:'in the rain'}
-];
-
-function setReadingLevel(lv) { readingLevel=lv; questionCount=0; updateReadLevelUI(); genReading(); }
-
-function updateReadLevelUI() {
-  var lvls = ['sounds','vowels','words','sentences'];
-  lvls.forEach(function(l) {
-    var el = document.getElementById('lvl-'+l);
-    if (el) {
-      if (l===readingLevel) { el.classList.add('active'); el.style.color='white'; }
-      else { el.classList.remove('active'); }
-    }
-  });
-}
-
-function genReading() {
-  var content = document.getElementById('reading-content');
-  var choices = document.getElementById('reading-choices');
-  questionCount++;
-  updProgress('reading', Math.min((questionCount/totalQ)*100,100));
-
-  if (readingLevel==='sounds') {
-    var item = SOUNDS[Math.floor(Math.random()*SOUNDS.length)];
-    var cls = item.v ? 'vowel' : 'consonant';
-    var badge = item.v ? '(This is a Vowel! ⭐)' : '(This is a Consonant!)';
-    content.innerHTML = '<div class="question-box"><div class="question-sub">What sound does this letter make?</div><div class="letter-display"><span class="'+cls+'">'+item.l+'</span></div><div class="question-sub">'+badge+'</div></div>';
-    currentSpeak = 'The letter '+item.l+' makes the '+item.s+' sound.';
-    speak('What sound does the letter '+item.l+' make?', 0.8, 1.4);
-    var wrong = shuffle(SOUNDS.filter(function(s){return s.l!==item.l;})).slice(0,3);
-    var opts = shuffle([item].concat(wrong));
-    choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkReading(this,''+o.s+'',''+item.s+'')">'+o.s+'</button>'; }).join('');
-
-  } else if (readingLevel==='vowels') {
-    var isV = Math.random()>0.4;
-    var allConsonants = 'BCDFGHJKLMNPQRSTVWXYZ'.split('');
-    var letter = isV ? VOWELS[Math.floor(Math.random()*VOWELS.length)] : allConsonants[Math.floor(Math.random()*allConsonants.length)];
-    var isVowel = VOWELS.includes(letter);
-    content.innerHTML = '<div class="question-box"><div class="question-sub">Is this letter a Vowel or Consonant?</div><div class="letter-display"><span style="color:white">'+letter+'</span></div><div class="question-sub">Vowels: A, E, I, O, U ⭐</div></div>';
-    currentSpeak = 'Is the letter '+letter+' a vowel or a consonant?';
-    var correct = isVowel ? 'Vowel!' : 'Consonant!';
-    speak(currentSpeak, 0.85, 1.4);
-    choices.innerHTML = '<button class="choice-btn" onclick="checkReading(this,'Vowel!',''+correct+'')">Vowel! ⭐</button><button class="choice-btn" onclick="checkReading(this,'Consonant!',''+correct+'')">Consonant!</button>';
-
-  } else if (readingLevel==='words') {
-    var item = WORDS[Math.floor(Math.random()*WORDS.length)];
-    var wrong = shuffle(WORDS.filter(function(w){return w.w!==item.w;})).slice(0,3);
-    content.innerHTML = '<div class="question-box"><div class="question-sub">Which word matches this picture?</div><div class="letter-display">'+item.p+'</div></div>';
-    currentSpeak = item.w;
-    speak('Which word matches this picture? '+item.w, 0.8, 1.4);
-    var opts = shuffle([item].concat(wrong));
-    choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkReading(this,''+o.w+'',''+item.w+'')">'+o.w+'</button>'; }).join('');
-
-  } else {
-    var item = SENTS[Math.floor(Math.random()*SENTS.length)];
-    content.innerHTML = '<div class="question-box"><div class="sentence-display" style="color:white">'+item.s+'</div><div class="question-sub" style="margin-top:12px">'+item.q+'</div></div>';
-    currentSpeak = item.s+' '+item.q;
-    speak(item.s, 0.8, 1.4);
-    var opts = shuffle(item.c.slice());
-    choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkReading(this,''+o.replace(/'/g,'&#39;')+'',''+item.a.replace(/'/g,'&#39;')+'')">'+o+'</button>'; }).join('');
-  }
-}
-
-function checkReading(btn, chosen, correct) {
-  document.querySelectorAll('#reading-choices .choice-btn').forEach(function(b){ b.onclick=null; });
-  if (chosen===correct) {
-    btn.classList.add('correct'); addScore(2); showFeedback(true);
-    speak('Great job! That is correct!', 0.9, 1.6);
-  } else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('#reading-choices .choice-btn').forEach(function(b){ if(b.textContent.trim()===correct||b.getAttribute('onclick')&&b.getAttribute('onclick').includes(correct)) b.classList.add('correct'); });
-    speak('Good try! The answer is '+correct, 0.9, 1.4); showFeedback(false);
-  }
-  setTimeout(function(){ if(questionCount<totalQ) genReading(); else showCompletion(); }, 1800);
-}
-// ===== MATH =====
-var SHAPES = [
-  {n:'Circle',p:'⭕',d:'has no corners - it is perfectly round!'},
-  {n:'Square',p:'🟥',d:'has 4 equal sides and 4 corners!'},
-  {n:'Triangle',p:'🔺',d:'has 3 sides and 3 corners!'},
-  {n:'Rectangle',p:'🟦',d:'has 4 sides - 2 long and 2 short!'},
-  {n:'Star',p:'⭐',d:'has 5 points!'},
-  {n:'Diamond',p:'🔷',d:'has 4 sides like a tilted square!'},
-  {n:'Oval',p:'🥚',d:'is like a stretched circle!'},
-  {n:'Heart',p:'❤️',d:'is a special love shape!'}
-];
-var EMOJIS = ['🍎','⭐','🐶','🍓','🎈','🦋','🌻','🐸','🍕','🎪'];
-
-function setMathLevel(lv) { mathLevel=lv; questionCount=0; updateMathLevelUI(); genMath(); }
-
-function updateMathLevelUI() {
-  var lvls = ['counting','addition','subtraction','shapes'];
-  lvls.forEach(function(l) {
-    var el = document.getElementById('lvl-'+l);
-    if (el) {
-      if (l===mathLevel) { el.classList.add('active'); el.style.color='white'; }
-      else { el.classList.remove('active'); }
-    }
-  });
-}
-
-function genMath() {
-  var content = document.getElementById('math-content');
-  var choices = document.getElementById('math-choices');
-  questionCount++;
-  updProgress('math', Math.min((questionCount/totalQ)*100,100));
-
-  if (mathLevel==='counting') {
-    var num = Math.floor(Math.random()*9)+1;
-    var em = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-    var display = '';
-    for(var i=0;i<num;i++) display += em+' ';
-    content.innerHTML = '<div class="question-box"><div class="question-sub">How many do you see?</div><div class="math-objects">'+display+'</div></div>';
-    currentSpeak = 'How many do you see? Count them!';
-    speak('How many do you see? Count them!', 0.8, 1.4);
-    choices.innerHTML = makeNumBtns(num, 'checkMath');
-
-  } else if (mathLevel==='addition') {
-    var a=Math.floor(Math.random()*6)+1, b=Math.floor(Math.random()*6)+1, ans=a+b;
-    var em = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-    var da='',db='';
-    for(var i=0;i<a;i++) da+=em+' ';
-    for(var i=0;i<b;i++) db+=em+' ';
-    content.innerHTML = '<div class="question-box"><div class="math-objects">'+da+' + '+db+'</div><div class="math-display" style="color:white">'+a+' + '+b+' = ?</div></div>';
-    currentSpeak = a+' plus '+b+' equals what?';
-    speak(a+' plus '+b+' equals what?', 0.85, 1.4);
-    choices.innerHTML = makeNumBtns(ans, 'checkMath');
-
-  } else if (mathLevel==='subtraction') {
-    var a=Math.floor(Math.random()*8)+3, b=Math.floor(Math.random()*(a-1))+1, ans=a-b;
-    content.innerHTML = '<div class="question-box"><div class="math-display" style="color:white">'+a+' - '+b+' = ?</div><div class="question-sub">Take away '+b+' from '+a+'</div></div>';
-    currentSpeak = a+' minus '+b+' equals what?';
-    speak(a+' minus '+b+' equals what?', 0.85, 1.4);
-    choices.innerHTML = makeNumBtns(ans, 'checkMath');
-
-  } else {
-    var item = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-    var doName = Math.random()>0.5;
-    if (doName) {
-      content.innerHTML = '<div class="question-box"><div class="question-sub">What shape is this?</div><div class="letter-display">'+item.p+'</div></div>';
-      currentSpeak = 'What shape is this?';
-      speak('What shape is this?', 0.85, 1.4);
-      var wrong = shuffle(SHAPES.filter(function(s){return s.n!==item.n;})).slice(0,3);
-      var opts = shuffle([item].concat(wrong));
-      choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkMath(this,''+o.n+'',''+item.n+'')">'+o.n+'</button>'; }).join('');
-    } else {
-      content.innerHTML = '<div class="question-box"><div class="letter-display">'+item.p+'</div><div class="question-sub">What do you know about a '+item.n+'?</div></div>';
-      currentSpeak = 'A '+item.n+' '+item.d;
-      speak('A '+item.n+' '+item.d, 0.85, 1.4);
-      var wrong = shuffle(SHAPES.filter(function(s){return s.n!==item.n;})).slice(0,3);
-      var opts = shuffle([item].concat(wrong));
-      choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkMath(this,''+o.n+'',''+item.n+'')" style="font-size:14px">'+o.n+'</button>'; }).join('');
-    }
-  }
-}
-
-function makeNumBtns(ans, fn) {
-  var set = [ans];
-  while(set.length<4){ var n=ans+Math.floor(Math.random()*7)-3; if(n>=0&&n<=20&&set.indexOf(n)<0) set.push(n); }
-  return shuffle(set).map(function(n){ return '<button class="choice-btn" onclick="'+fn+'(this,'+n+','+ans+')">'+n+'</button>'; }).join('');
-}
-
-function checkMath(btn, chosen, correct) {
-  document.querySelectorAll('#math-choices .choice-btn').forEach(function(b){ b.onclick=null; });
-  if (String(chosen)===String(correct)) {
-    btn.classList.add('correct'); addScore(2); showFeedback(true);
-    speak('Excellent! You got it right!', 0.9, 1.6);
-  } else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('#math-choices .choice-btn').forEach(function(b){ if(b.textContent.trim()===String(correct)) b.classList.add('correct'); });
-    speak('Good try! The answer is '+correct, 0.9, 1.4); showFeedback(false);
-  }
-  setTimeout(function(){ if(questionCount<totalQ) genMath(); else showCompletion(); }, 1800);
-}
-// ===== BLACK HISTORY =====
-var HISTORY = [
-  {person:'Harriet Tubman',emoji:'👩🏾',fact:'Harriet Tubman was a very brave woman who helped hundreds of people escape slavery through secret paths called the Underground Railroad. She was called Moses because she led her people to freedom!',q:'What was Harriet Tubman known for?',c:['Helping people to freedom','Building a rocket','Painting pictures','Writing songs'],a:'Helping people to freedom'},
-  {person:'Martin Luther King Jr.',emoji:'👨🏾‍💼',fact:'Dr. Martin Luther King Jr. was a peaceful leader who gave amazing speeches about fairness. His famous speech was called I Have a Dream. He wanted everyone to be treated the same!',q:'What did Dr. King dream about?',c:['Everyone being treated fairly','Flying to the moon','Eating ice cream','Building buildings'],a:'Everyone being treated fairly'},
-  {person:'Rosa Parks',emoji:'👩🏾‍💼',fact:'Rosa Parks was a brave woman who refused to give up her seat on a bus. She helped start a big movement for equal rights. She is called the mother of the freedom movement!',q:'What did Rosa Parks refuse to do?',c:['Give up her bus seat','Go to school','Eat vegetables','Read a book'],a:'Give up her bus seat'},
-  {person:'Barack Obama',emoji:'👨🏾‍💼',fact:'Barack Obama became the first Black President of the United States in 2009! He worked very hard and went to great schools. He showed the whole world that you can achieve anything you dream!',q:'What did Barack Obama become first?',c:['First Black President','First astronaut','First teacher','First doctor'],a:'First Black President'},
-  {person:'Mae Jemison',emoji:'👩🏾‍🚀',fact:'Mae Jemison was the first Black woman to travel to space! She was a doctor AND an astronaut. She blasted off into space in 1992 and proved that girls can do anything!',q:'What was Mae Jemison the first to do?',c:['Black woman in space','Run a marathon','Build a bridge','Teach school'],a:'Black woman in space'},
-  {person:'George Washington Carver',emoji:'👨🏾‍🔬',fact:'George Washington Carver was an amazing scientist who discovered over 300 ways to use peanuts! He helped farmers grow better food and created many inventions. He loved plants and science!',q:'What did Carver discover?',c:['300 uses for peanuts','How to fly','A new planet','Making music'],a:'300 uses for peanuts'},
-  {person:'Serena Williams',emoji:'🎾',fact:'Serena Williams is one of the greatest tennis players ever! She won 23 Grand Slam titles and showed the world that hard work can make your dreams come true. She is a true champion!',q:'What sport made Serena Williams famous?',c:['Tennis','Soccer','Basketball','Swimming'],a:'Tennis'},
-  {person:'Misty Copeland',emoji:'🩰',fact:'Misty Copeland became the first Black woman to be named a principal dancer at the American Ballet Theatre. She started ballet at age 13 and worked very hard to become a world-famous ballerina!',q:'What art form is Misty Copeland famous for?',c:['Ballet dancing','Painting','Singing','Cooking'],a:'Ballet dancing'}
-];
-var histOrder = [];
-
-function genHistory() {
-  if (!histOrder.length) { histOrder = shuffle([0,1,2,3,4,5,6,7]); }
-  var content = document.getElementById('history-content');
-  var choices = document.getElementById('history-choices');
-  questionCount++;
-  updProgress('history', Math.min((questionCount/totalQ)*100,100));
-  var item = HISTORY[histOrder[(questionCount-1) % HISTORY.length]];
-  currentSpeak = item.fact;
-  content.innerHTML = '<div class="question-box"><div class="history-person">'+item.emoji+'</div><div class="history-name">'+item.person+'</div></div><div class="card" style="margin-top:8px"><div class="history-fact">'+item.fact+'</div></div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:bold;color:#764ba2">'+item.q+'</div>';
-  speak(item.person+'. '+item.fact, 0.8, 1.3);
-  var opts = shuffle(item.c.slice());
-  choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkHistory(this,''+o.replace(/'/g,'&#39;')+'',''+item.a.replace(/'/g,'&#39;')+'')">'+o+'</button>'; }).join('');
-}
-
-function checkHistory(btn, chosen, correct) {
-  document.querySelectorAll('#history-choices .choice-btn').forEach(function(b){ b.onclick=null; });
-  if (chosen===correct) {
-    btn.classList.add('correct'); addScore(3); showFeedback(true);
-    speak('Wonderful! You know your history! You are so smart!', 0.9, 1.5);
-  } else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('#history-choices .choice-btn').forEach(function(b){ if(b.textContent.trim()===correct) b.classList.add('correct'); });
-    speak('Good try! The answer is '+correct, 0.9, 1.4); showFeedback(false);
-  }
-  setTimeout(function(){ if(questionCount<totalQ) genHistory(); else showCompletion(); }, 2200);
-}
-// ===== AI LITERACY =====
-var AI_DATA = [
-  {topic:'What is AI?',emoji:'🤖',explain:'AI stands for Artificial Intelligence! It means teaching computers to think and learn, just like how YOU learn new things at school. AI helps computers see pictures, understand words, and answer questions!',q:'What does AI stand for?',c:['Artificial Intelligence','Amazing Ideas','Animal Island','Art and Imagination'],a:'Artificial Intelligence'},
-  {topic:'How does AI learn?',emoji:'📚',explain:'AI learns by looking at LOTS and LOTS of examples. Just like you learned the alphabet by practicing over and over, AI learns by studying millions of pictures, words, and sounds!',q:'How does AI learn new things?',c:['From lots of examples','By going to school','By watching TV','By sleeping'],a:'From lots of examples'},
-  {topic:'AI can see pictures!',emoji:'👁️',explain:'AI can look at a picture and tell you what is in it. Show AI a picture of a dog, and it says That is a dog! This is called Image Recognition. So cool!',q:'What can AI do with pictures?',c:['Recognize what is in them','Eat them','Draw them bigger','Print them out'],a:'Recognize what is in them'},
-  {topic:'AI talks to us!',emoji:'💬',explain:'Some AI can understand your words and talk back to you! Voice assistants use AI. When you ask them a question, AI helps understand what you said and finds an answer!',q:'What do voice assistants use?',c:['Artificial Intelligence','Magic spells','Invisible friends','Telephone wires'],a:'Artificial Intelligence'},
-  {topic:'AI in games!',emoji:'🎮',explain:'AI is in many video games! When you play a game by yourself, the characters you play against are controlled by AI. The AI helps them make decisions, like where to go next!',q:'What does AI control in video games?',c:['Game characters','The screen','The music','The controller'],a:'Game characters'},
-  {topic:'AI helps doctors!',emoji:'🏥',explain:'AI can help doctors look at X-rays and find if someone is sick. It is like a super helper that can look at pictures very carefully. AI helps make sure people get the right help!',q:'How does AI help doctors?',c:['By looking at X-rays','By giving medicine','By cooking food','By driving cars'],a:'By looking at X-rays'},
-  {topic:'Be smart with AI!',emoji:'🛡️',explain:'AI is a tool, just like a pencil or calculator. It can make mistakes, so we should always have a grown-up help us use it. Never share your name, address, or phone number with any AI!',q:'What should you do when using AI?',c:['Have a grown-up help you','Use it all alone','Share all your info','Trust everything it says'],a:'Have a grown-up help you'},
-  {topic:'YOU could build AI!',emoji:'🌟',explain:'You could grow up to be an AI scientist! People who build AI are called engineers and data scientists. If you love math, science, and puzzles, you might build amazing AI robots and programs!',q:'What could you be if you build AI?',c:['An engineer or scientist','A chef','A pilot','A firefighter'],a:'An engineer or scientist'}
-];
-
-function genAI() {
-  var content = document.getElementById('ai-content');
-  var choices = document.getElementById('ai-choices');
-  questionCount++;
-  updProgress('ai', Math.min((questionCount/AI_DATA.length)*100,100));
-  var item = AI_DATA[(questionCount-1) % AI_DATA.length];
-  currentSpeak = item.explain;
-  content.innerHTML = '<div class="question-box"><div class="history-person">'+item.emoji+'</div><div class="history-name">'+item.topic+'</div></div><div class="ai-scenario">'+item.explain+'</div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:bold;color:#9B59B6">'+item.q+'</div>';
-  speak(item.topic+'. '+item.explain, 0.8, 1.3);
-  var opts = shuffle(item.c.slice());
-  choices.innerHTML = opts.map(function(o){ return '<button class="choice-btn" onclick="checkAI(this,''+o.replace(/'/g,'&#39;')+'',''+item.a.replace(/'/g,'&#39;')+'')">'+o+'</button>'; }).join('');
-}
-
-function checkAI(btn, chosen, correct) {
-  document.querySelectorAll('#ai-choices .choice-btn').forEach(function(b){ b.onclick=null; });
-  if (chosen===correct) {
-    btn.classList.add('correct'); addScore(3); showFeedback(true);
-    speak('Amazing! You are so smart about technology!', 0.9, 1.5);
-  } else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('#ai-choices .choice-btn').forEach(function(b){ if(b.textContent.trim()===correct) b.classList.add('correct'); });
-    speak('Good try! The answer is '+correct, 0.9, 1.4); showFeedback(false);
-  }
-  setTimeout(function(){ if(questionCount<AI_DATA.length) genAI(); else showCompletion(); }, 2000);
-}
-// ===== DRAWING =====
-var DRAW_WORDS = [
-  'a cat 🐱','a dog 🐶','the sun ☀️','a house 🏠','a tree 🌳',
-  'a flower 🌸','a star ⭐','a heart ❤️','a bird 🐦','a fish 🐟',
-  'a rainbow 🌈','a cloud ☁️','a robot 🤖','a rocket 🚀',
-  'a book 📚','Harriet Tubman ✊🏾','your family 👪','your dream 🌟'
-];
-var COLORS = ['#000000','#e53935','#FF8C42','#FFD93D','#6BCB77','#4ECDC4','#2196F3','#9B59B6','#FF6B9D','#795548','#FFFFFF'];
-var curColor = '#000000', curBrush = 6, drawing = false, isEraser = false, lastX = 0, lastY = 0;
-var drawCanvas, ctx;
-
-function initDrawing() {
-  drawCanvas = document.getElementById('draw-canvas');
-  ctx = drawCanvas.getContext('2d');
-  var maxW = Math.min(window.innerWidth - 48, 620);
-  drawCanvas.width = maxW;
-  drawCanvas.height = Math.round(maxW * 0.55);
-  ctx.fillStyle = '#FAFAFA';
-  ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-
-  var palette = document.getElementById('color-palette');
-  palette.innerHTML = COLORS.map(function(c){
-    var active = c===curColor ? ' active' : '';
-    var bdr = c==='#FFFFFF' ? '#ccc' : c;
-    return '<div class="color-swatch'+active+'" style="background:'+c+';border-color:'+bdr+'" onclick="setColor(''+c+'')" data-color="'+c+'"></div>';
-  }).join('');
-
-  var brushDiv = document.getElementById('brush-sizes');
-  brushDiv.innerHTML = '<span style="font-size:13px;color:#666">Size:</span>' +
-    [3,6,12,20].map(function(s){
-      var active = s===curBrush ? ' active' : '';
-      return '<button class="brush-btn'+active+'" onclick="setBrush('+s+')" data-size="'+s+'"><div style="width:'+s+'px;height:'+s+'px;background:#333;border-radius:50%"></div></button>';
-    }).join('');
-
-  drawCanvas.onmousedown = function(e){ drawing=true; lastX=e.offsetX; lastY=e.offsetY; dot(lastX,lastY); };
-  drawCanvas.onmousemove = function(e){ if(drawing) line(e.offsetX,e.offsetY); };
-  drawCanvas.onmouseup = function(){ drawing=false; };
-  drawCanvas.onmouseleave = function(){ drawing=false; };
-  drawCanvas.ontouchstart = function(e){
-    e.preventDefault();
-    var r=drawCanvas.getBoundingClientRect();
-    var t=e.touches[0];
-    drawing=true; lastX=t.clientX-r.left; lastY=t.clientY-r.top; dot(lastX,lastY);
-  };
-  drawCanvas.ontouchmove = function(e){
-    e.preventDefault();
-    if(!drawing) return;
-    var r=drawCanvas.getBoundingClientRect();
-    var t=e.touches[0];
-    line(t.clientX-r.left, t.clientY-r.top);
-  };
-  drawCanvas.ontouchend = function(){ drawing=false; };
-  newDrawWord();
-}
-
-function dot(x,y){ ctx.beginPath(); ctx.arc(x,y,isEraser?15:curBrush/2,0,Math.PI*2); ctx.fillStyle=isEraser?'#FAFAFA':curColor; ctx.fill(); }
-
-function line(x,y){
-  ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(x,y);
-  ctx.strokeStyle=isEraser?'#FAFAFA':curColor; ctx.lineWidth=isEraser?30:curBrush; ctx.stroke();
-  lastX=x; lastY=y;
-}
-
-function setColor(c){
-  curColor=c; isEraser=false;
-  document.querySelectorAll('.color-swatch').forEach(function(s){ s.classList.toggle('active', s.dataset.color===c); });
-  var eb=document.getElementById('eraser-btn'); eb.style.borderColor='#888'; eb.style.color='#555'; eb.textContent='⬜ Eraser';
-}
-
-function setBrush(s){
-  curBrush=s;
-  document.querySelectorAll('.brush-btn').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.size)===s); });
-}
-
-function toggleEraser(){
-  isEraser=!isEraser;
-  var eb=document.getElementById('eraser-btn');
-  eb.style.borderColor=isEraser?'#e53935':'#888';
-  eb.style.color=isEraser?'#e53935':'#555';
-  eb.textContent=isEraser?'✏️ Draw':'⬜ Eraser';
-}
-
-function clearCanvas(){ if(ctx){ ctx.fillStyle='#FAFAFA'; ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height); } }
-
-function newDrawWord(){
-  var w=DRAW_WORDS[Math.floor(Math.random()*DRAW_WORDS.length)];
-  document.getElementById('draw-word').textContent=w;
-  speak('Draw '+w, 0.9, 1.5);
-}
