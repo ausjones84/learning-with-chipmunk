@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Learning with Chipmunk 🐿️</title>
+<style>
+  :root {
+    --primary: #FF6B9D;
+    --secondary: #FFD93D;
+    --accent: #6BCB77;
+    --purple: #9B59B6;
+    --blue: #4ECDC4;
+    --orange: #FF8C42;
+    --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --card: rgba(255,255,255,0.95);
+    --shadow: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Comic Sans MS', 'Chalkboard SE', cursive; background: var(--bg); min-height: 100vh; overflow-x: hidden; }
+  
+  /* HEADER */
+  #header {
+    background: linear-gradient(90deg,#FF6B9D,#FFD93D,#6BCB77,#4ECDC4,#9B59B6);
+    background-size: 400% 400%; animation: rainbow 4s ease infinite;
+    padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100;
+  }
+  @keyframes rainbow { 0%{background-position:0%} 50%{background-position:100%} 100%{background-position:0%} }
+  #header h1 { font-size: clamp(16px,4vw,24px); color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }
+  #score-display { background: white; border-radius: 20px; padding: 6px 14px; font-size: clamp(12px,3vw,16px); font-weight: bold; color: #764ba2; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  #chipmunk-mascot { font-size: clamp(28px,6vw,48px); animation: bounce 1s infinite; cursor: pointer; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  /* MAIN MENU */
+  #main-menu { display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; }
+  #main-menu h2 { font-size: clamp(20px,5vw,36px); color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.4); text-align:center; margin-bottom:8px; }
+  .menu-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; width: 100%; max-width: 600px; }
+  .menu-btn {
+    background: white; border-radius: 20px; padding: 18px 12px; text-align: center;
+    cursor: pointer; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s;
+    border: 4px solid transparent; user-select: none;
+  }
+  .menu-btn:active { transform: scale(0.95); }
+  .menu-btn:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
+  .menu-btn .icon { font-size: clamp(32px,8vw,52px); display: block; margin-bottom: 8px; }
+  .menu-btn .label { font-size: clamp(13px,3.5vw,18px); font-weight: bold; color: #333; }
+  .menu-btn.reading { border-color: var(--primary); }
+  .menu-btn.math { border-color: var(--secondary); }
+  .menu-btn.history { border-color: var(--orange); }
+  .menu-btn.ai { border-color: var(--purple); }
+  .menu-btn.drawing { border-color: var(--accent); }
+
+  /* SCREENS */
+  .screen { display: none; flex-direction: column; align-items: center; padding: 16px; min-height: calc(100vh - 70px); }
+  .screen.active { display: flex; }
+  .card { background: var(--card); border-radius: 24px; padding: 20px; box-shadow: var(--shadow); width: 100%; max-width: 680px; margin-bottom: 16px; }
+  .screen-title { font-size: clamp(18px,5vw,28px); font-weight: bold; margin-bottom: 16px; text-align: center; }
+
+  /* BACK BUTTON */
+  .back-btn {
+    background: white; border: 3px solid #764ba2; color: #764ba2; border-radius: 30px;
+    padding: 8px 20px; font-size: 15px; font-family: inherit; cursor: pointer;
+    font-weight: bold; margin-bottom: 12px; align-self: flex-start;
+    transition: all 0.2s; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  }
+  .back-btn:active { transform: scale(0.95); }
+
+  /* ANSWER BUTTONS */
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 12px; }
+  .choice-btn {
+    background: linear-gradient(135deg, #f6f7fa, #e9ecf1);
+    border: 3px solid #ccc; border-radius: 16px; padding: 14px 8px;
+    font-size: clamp(14px,4vw,20px); font-family: inherit; cursor: pointer;
+    transition: all 0.2s; font-weight: bold; color: #333;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  }
+  .choice-btn:active { transform: scale(0.95); }
+  .choice-btn.correct { background: linear-gradient(135deg,#6BCB77,#4CAF50); border-color: #388e3c; color: white; transform: scale(1.05); }
+  .choice-btn.wrong { background: linear-gradient(135deg,#ff6b6b,#e53935); border-color: #c62828; color: white; }
+  .choice-btn:hover:not(.correct):not(.wrong) { background: linear-gradient(135deg,#FFD93D,#FFC107); border-color: #FF8C42; }
+
+  /* QUESTION DISPLAY */
+  .question-box { background: linear-gradient(135deg,#667eea,#764ba2); border-radius: 20px; padding: 20px; text-align: center; color: white; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .question-text { font-size: clamp(20px,6vw,40px); font-weight: bold; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); line-height: 1.3; }
+  .question-sub { font-size: clamp(12px,3vw,16px); margin-top: 8px; opacity: 0.9; }
+
+  /* FEEDBACK */
+  #feedback-overlay {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0);
+    z-index: 999; pointer-events: none; transition: transform 0.3s;
+    font-size: clamp(40px,12vw,80px); text-align: center;
+  }
+  #feedback-overlay.show { transform: translate(-50%,-50%) scale(1); }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background: rgba(255,255,255,0.3); border-radius: 10px; height: 14px; width: 100%; margin-bottom: 12px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg,#6BCB77,#FFD93D); transition: width 0.4s; }
+
+  /* READING SPECIFIC */
+  .letter-display { font-size: clamp(60px,18vw,120px); font-weight: bold; text-align: center; padding: 20px; line-height:1; }
+  .vowel { color: var(--primary); }
+  .consonant { color: var(--blue); }
+  .word-display { font-size: clamp(30px,8vw,56px); font-weight: bold; text-align: center; padding: 10px; }
+  .sentence-display { font-size: clamp(16px,4vw,24px); text-align: center; padding: 10px; line-height: 1.6; }
+
+  /* MATH SPECIFIC */
+  .math-display { font-size: clamp(32px,9vw,64px); font-weight: bold; text-align: center; padding: 16px; color: #333; }
+  .math-objects { font-size: clamp(24px,7vw,48px); text-align: center; letter-spacing: 4px; margin: 8px 0; }
+
+  /* HISTORY */
+  .history-person { font-size: clamp(40px,10vw,64px); text-align: center; margin: 8px 0; }
+  .history-name { font-size: clamp(18px,5vw,28px); font-weight: bold; color: #764ba2; text-align:center; }
+  .history-fact { font-size: clamp(13px,3.5vw,18px); line-height: 1.7; text-align: center; padding: 8px; color: #333; }
+
+  /* AI LITERACY */
+  .ai-scenario { background: linear-gradient(135deg,#9B59B6,#6c3483); color: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; font-size: clamp(14px,3.5vw,18px); line-height:1.7; }
+
+  /* DRAWING */
+  #draw-canvas { border-radius: 16px; box-shadow: var(--shadow); touch-action: none; cursor: crosshair; max-width: 100%; display: block; }
+  .color-palette { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+  .color-swatch { width: clamp(28px,6vw,40px); height: clamp(28px,6vw,40px); border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+  .color-swatch.active { border-color: #333; transform: scale(1.25); }
+  .brush-sizes { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 6px 0; }
+  .brush-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #999; background: white; cursor: pointer; display:flex; align-items:center; justify-content:center; transition: all 0.2s; }
+  .brush-btn.active { border-color: #764ba2; background: #f3e5ff; }
+  .draw-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .draw-btn { background: white; border: 2px solid #ccc; border-radius: 12px; padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+  .draw-btn:active { transform: scale(0.95); }
+  .draw-word-prompt { font-size: clamp(16px,4vw,22px); font-weight: bold; text-align: center; color: #764ba2; background: #f3e5ff; border-radius: 12px; padding: 10px 16px; margin-bottom: 8px; }
+
+  /* VOICE BUTTON */
+  .voice-btn { background: linear-gradient(135deg,#FF6B9D,#ff4081); color: white; border: none; border-radius: 50%; width: 52px; height: 52px; font-size: 22px; cursor: pointer; box-shadow: 0 4px 12px rgba(255,64,129,0.4); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+  .voice-btn:active { transform: scale(0.9); }
+  .voice-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0; }
+
+  /* STARS / CELEBRATION */
+  .stars { display: flex; justify-content: center; gap: 4px; margin: 8px 0; }
+  .star { font-size: clamp(20px,5vw,32px); animation: pop 0.4s ease; }
+  @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+  /* LEVEL INDICATOR */
+  .level-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .level-badge { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+  .level-badge.active { box-shadow: 0 2px 8px rgba(0,0,0,0.2); transform: scale(1.05); }
+  .level-badge.sounds { background: #ffecf1; color: #d63384; border-color: #d63384; }
+  .level-badge.sounds.active { background: #d63384; color: white; }
+  .level-badge.vowels { background: #e8f4ff; color: #0d6efd; border-color: #0d6efd; }
+  .level-badge.vowels.active { background: #0d6efd; color: white; }
+  .level-badge.words { background: #e8fff0; color: #198754; border-color: #198754; }
+  .level-badge.words.active { background: #198754; color: white; }
+  .level-badge.sentences { background: #fff3e0; color: #fd7e14; border-color: #fd7e14; }
+  .level-badge.sentences.active { background: #fd7e14; color: white; }
+
+  /* CONFETTI */
+  .confetti-piece { position: fixed; width: 10px; height: 10px; border-radius: 2px; animation: fall 2.5s linear forwards; pointer-events: none; z-index: 9999; }
+  @keyframes fall { 0%{top:-10px;opacity:1} 100%{top:110vh;opacity:0} }
+
+  /* RESPONSIVE */
+  @media (max-width: 420px) {
+    .menu-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choices { grid-template-columns: 1fr 1fr; }
+  }
+  @media (min-width: 768px) {
+    .menu-grid { grid-template-columns: repeat(3,1fr); }
+  }
+
+  /* COMPLETION SCREEN */
+  #completion-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 70px); padding: 20px; text-align: center; }
+  #completion-screen.active { display: flex; }
+  .completion-card { background: white; border-radius: 30px; padding: 30px; box-shadow: var(--shadow); max-width: 500px; width: 100%; }
+  .big-emoji { font-size: 80px; animation: bounce 1s infinite; display: block; margin: 0 auto 16px; }
+  .completion-title { font-size: clamp(22px,6vw,36px); font-weight: bold; color: #764ba2; margin-bottom: 8px; }
+  .final-score { font-size: clamp(28px,8vw,52px); font-weight: bold; background: linear-gradient(135deg,#FF6B9D,#764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .play-again-btn { background: linear-gradient(135deg,#FF6B9D,#764ba2); color: white; border: none; border-radius: 30px; padding: 14px 32px; font-size: 18px; font-family: inherit; cursor: pointer; margin-top: 16px; font-weight: bold; box-shadow: 0 4px 15px rgba(118,75,162,0.4); transition: all 0.2s; }
+  .play-again-btn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<!-- FEEDBACK OVERLAY -->
+<div id="feedback-overlay"></div>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="chipmunk-mascot" onclick="speakChipmunk()">🐿️</div>
+  <h1>Learning with Chipmunk!</h1>
+  <div id="score-display">⭐ <span id="score-val">0</span></div>
+</div>
+
+<!-- MAIN MENU -->
+<div id="main-menu" class="screen active">
+  <h2>🌟 What do you want to learn today? 🌟</h2>
+  <div class="menu-grid">
+    <div class="menu-btn reading" onclick="openScreen('reading')">
+      <span class="icon">📚</span>
+      <span class="label">Reading & Sounds</span>
+    </div>
+    <div class="menu-btn math" onclick="openScreen('math')">
+      <span class="icon">🔢</span>
+      <span class="label">Fun Math</span>
+    </div>
+    <div class="menu-btn history" onclick="openScreen('history')">
+      <span class="icon">✊🏾</span>
+      <span class="label">Black History Heroes</span>
+    </div>
+    <div class="menu-btn ai" onclick="openScreen('ai')">
+      <span class="icon">🤖</span>
+      <span class="label">What is AI?</span>
+    </div>
+    <div class="menu-btn drawing" onclick="openScreen('drawing')" style="grid-column:1/-1">
+      <span class="icon">🎨</span>
+      <span class="label">Drawing Game</span>
+    </div>
+  </div>
+  <div style="margin-top:16px;color:white;font-size:15px;text-align:center;opacity:0.9;">
+    Tap Chipmunk 🐿️ anytime to hear a fun message!
+  </div>
+</div>
+
+<!-- READING SCREEN -->
+<div id="reading-screen" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+  <div class="card">
+    <div class="screen-title" style="color:#d63384;">📚 Reading with Chipmunk!</div>
+    <div class="level-badges">
+      <div class="level-badge sounds active" onclick="setReadingLevel('sounds')" id="lvl-sounds">🔊 Sounds</div>
+      <div class="level-badge vowels" onclick="setReadingLevel('vowels')" id="lvl-vowels">🅰️ Vowels</div>
+      <div class="level-badge words" onclick="setReadingLevel('words')" id="lvl-words">📝 Words</div>
+      <div class="level-badge sentences" onclick="setReadingLevel('sentences')" id="lvl-sentences">📖 Sentences</div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="reading-progress" style="width:0%"></div></div>
+    <div id="reading-content"></div>
+    <div class="choices" id="reading-choices"></div>
+    <div class="voice-row">
+      <button class="voice-btn" onclick="speakCurrent()" title="Hear it!">🔊</button>
+      <span style="font-size:14px;color:#666;">Tap to hear it!</span>
+    </div>
+  </div>
+</div>
+
+<!-- MATH SCREEN -->
+<div id="math-screen" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+  <div class="card">
+    <div class="screen-title" style="color:#e67e22;">🔢 Math Fun!</div>
+    <div class="level-badges">
+      <div class="level-badge sounds active" onclick="setMathLevel('counting')" id="lvl-counting" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14;">🍎 Counting</div>
+      <div class="level-badge vowels" onclick="setMathLevel('addition')" id="lvl-addition" style="background:#e8fff0;color:#198754;border-color:#198754;">➕ Adding</div>
+      <div class="level-badge words" onclick="setMathLevel('subtraction')" id="lvl-subtraction" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd;">➖ Taking Away</div>
+      <div class="level-badge sentences" onclick="setMathLevel('shapes')" id="lvl-shapes" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6;">🔷 Shapes</div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" id="math-progress" style="width:0%"></div></div>
+    <div id="math-content"></div>
+    <div class="choices" id="math-choices"></div>
+    <div class="voice-row">
+      <button class="voice-btn" onclick="speakCurrent()" title="Hear it!">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY SCREEN -->
+<div id="history-screen" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+  <div class="card">
+    <div class="screen-title" style="color:#e67e22;">✊🏾 Black History Heroes!</div>
+    <div class="progress-wrap"><div class="progress-fill" id="history-progress" style="width:0%"></div></div>
+    <div id="history-content"></div>
+    <div class="choices" id="history-choices"></div>
+    <div class="voice-row">
+      <button class="voice-btn" onclick="speakCurrent()" title="Hear it!">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI LITERACY SCREEN -->
+<div id="ai-screen" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+  <div class="card">
+    <div class="screen-title" style="color:#9B59B6;">🤖 What is Artificial Intelligence?</div>
+    <div class="progress-wrap"><div class="progress-fill" id="ai-progress" style="width:0%"></div></div>
+    <div id="ai-content"></div>
+    <div class="choices" id="ai-choices"></div>
+    <div class="voice-row">
+      <button class="voice-btn" onclick="speakCurrent()" title="Hear it!">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWING SCREEN -->
+<div id="drawing-screen" class="screen">
+  <button class="back-btn" onclick="goHome()">⬅️ Home</button>
+  <div class="card" style="padding:14px;">
+    <div class="screen-title" style="color:#198754;">🎨 Drawing with Chipmunk!</div>
+    <div id="draw-word-prompt" class="draw-word-prompt">Draw: <span id="draw-word">a cat</span></div>
+    <div style="display:flex;justify-content:center;">
+      <canvas id="draw-canvas" width="620" height="340"></canvas>
+    </div>
+    <div class="color-palette" id="color-palette"></div>
+    <div class="brush-sizes" id="brush-sizes"></div>
+    <div class="draw-controls">
+      <button class="draw-btn" onclick="clearCanvas()" style="border-color:#e53935;color:#e53935;">🗑️ Clear</button>
+      <button class="draw-btn" onclick="toggleEraser()" id="eraser-btn" style="border-color:#888;color:#555;">⬜ Eraser</button>
+      <button class="draw-btn" onclick="newDrawWord()" style="border-color:#198754;color:#198754;">🔀 New Word</button>
+      <button class="draw-btn" onclick="speakDrawWord()" style="border-color:#0d6efd;color:#0d6efd;">🔊 Say It</button>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:13px;color:#888;">Use your finger or mouse to draw!</div>
+  </div>
+</div>
+
+<!-- COMPLETION SCREEN -->
+<div id="completion-screen">
+  <div class="completion-card">
+    <span class="big-emoji">🎉</span>
+    <div class="completion-title">Amazing Job!</div>
+    <div style="font-size:16px;color:#666;margin-bottom:8px;">You scored</div>
+    <div class="final-score" id="final-score-display">10</div>
+    <div style="font-size:16px;color:#666;margin-top:4px;">stars!</div>
+    <div class="stars" id="completion-stars"></div>
+    <button class="play-again-btn" onclick="goHome()">🏠 Play Again!</button>
+  </div>
+</div>
+<script>
+// ==================== GLOBAL STATE ====================
+let score = 0;
+let currentAnswer = '';
+let currentSpeak = '';
+let readingLevel = 'sounds';
+let mathLevel = 'counting';
+let questionCount = 0;
+let totalQuestions = 8;
+
+// ==================== SPEECH ====================
+const synth = window.speechSynthesis;
+let voices = [];
+synth.addEventListener('voiceschanged', () => { voices = synth.getVoices(); });
+setTimeout(() => { voices = synth.getVoices(); }, 500);
+
+function speak(text, rate=0.85, pitch=1.4) {
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  const child = voices.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Female') || v.lang==='en-US');
+  if (child) utt.voice = child;
+  utt.rate = rate; utt.pitch = pitch; utt.volume = 1;
+  synth.speak(utt);
+}
+
+function speakChipmunk() {
+  const msgs = [
+    "Hi friend! I am Chipmunk! Let's learn together!",
+    "You are so smart! Keep going!",
+    "Wow, you're doing amazing!",
+    "Learning is so much fun!",
+    "I believe in you! You can do it!",
+    "Great job! You're a superstar!",
+    "Let's keep learning! I'm so proud of you!"
+  ];
+  speak(msgs[Math.floor(Math.random()*msgs.length)], 0.9, 1.6);
+  document.getElementById('chipmunk-mascot').style.transform = 'scale(1.5) rotate(15deg)';
+  setTimeout(() => { document.getElementById('chipmunk-mascot').style.transform = ''; }, 600);
+}
+
+function speakCurrent() { if (currentSpeak) speak(currentSpeak); }
+
+// ==================== NAVIGATION ====================
+function openScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('main-menu').classList.remove('active');
+  document.getElementById(name+'-screen').classList.add('active');
+  questionCount = 0;
+  if (name === 'reading') { readingLevel = 'sounds'; updateReadingLevelUI(); generateReadingQuestion(); }
+  else if (name === 'math') { mathLevel = 'counting'; updateMathLevelUI(); generateMathQuestion(); }
+  else if (name === 'history') { generateHistoryQuestion(); }
+  else if (name === 'ai') { generateAIQuestion(); }
+  else if (name === 'drawing') { initDrawing(); }
+}
+
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('completion-screen').classList.remove('active');
+  document.getElementById('main-menu').classList.add('active');
+  speak('Welcome back! What do you want to learn today?', 0.9, 1.5);
+}
+
+function showFeedback(correct) {
+  const el = document.getElementById('feedback-overlay');
+  el.textContent = correct ? ['⭐','🌟','✨','🎉','🏆','🎊'][Math.floor(Math.random()*6)] : '💪';
+  el.classList.add('show');
+  if (correct) confetti();
+  setTimeout(() => el.classList.remove('show'), 1000);
+}
+
+function addScore(pts) {
+  score += pts;
+  document.getElementById('score-val').textContent = score;
+  const el = document.getElementById('score-display');
+  el.style.transform = 'scale(1.3)';
+  setTimeout(() => el.style.transform = '', 300);
+}
+
+function updateProgress(screenId, val) {
+  document.getElementById(screenId+'-progress').style.width = val+'%';
+}
+
+// ==================== READING ====================
+const SOUNDS = [
+  {letter:'A',sound:'Ah',isVowel:true},  {letter:'B',sound:'Buh',isVowel:false},
+  {letter:'C',sound:'Kuh',isVowel:false}, {letter:'D',sound:'Duh',isVowel:false},
+  {letter:'E',sound:'Eh',isVowel:true},  {letter:'F',sound:'Fff',isVowel:false},
+  {letter:'G',sound:'Guh',isVowel:false}, {letter:'H',sound:'Huh',isVowel:false},
+  {letter:'I',sound:'Ih',isVowel:true},  {letter:'J',sound:'Juh',isVowel:false},
+  {letter:'K',sound:'Kuh',isVowel:false}, {letter:'L',sound:'Lll',isVowel:false},
+  {letter:'M',sound:'Mmm',isVowel:false}, {letter:'N',sound:'Nnn',isVowel:false},
+  {letter:'O',sound:'Oh',isVowel:true},  {letter:'P',sound:'Puh',isVowel:false},
+  {letter:'R',sound:'Rrr',isVowel:false}, {letter:'S',sound:'Sss',isVowel:false},
+  {letter:'T',sound:'Tuh',isVowel:false}, {letter:'U',sound:'Uh',isVowel:true},
+  {letter:'V',sound:'Vvv',isVowel:false}, {letter:'W',sound:'Wuh',isVowel:false},
+  {letter:'Y',sound:'Yuh',isVowel:false}, {letter:'Z',sound:'Zzz',isVowel:false}
+];
+const VOWELS = ['A','E','I','O','U'];
+const CVC_WORDS = [
+  {word:'cat',pic:'🐱'},{word:'dog',pic:'🐶'},{word:'sun',pic:'☀️'},{word:'hat',pic:'🎩'},
+  {word:'big',pic:'🐘'},{word:'cup',pic:'🥤'},{word:'bed',pic:'🛏️'},{word:'fox',pic:'🦊'},
+  {word:'bug',pic:'🐛'},{word:'hop',pic:'🐸'},{word:'run',pic:'🏃'},{word:'sit',pic:'🪑'},
+  {word:'red',pic:'🔴'},{word:'fun',pic:'🎉'},{word:'map',pic:'🗺️'},{word:'log',pic:'🪵'}
+];
+const SENTENCES = [
+  {sentence:'The cat sat on the mat.',question:'Where did the cat sit?',choices:['on the mat','in the box','on the tree','by the lake'],answer:'on the mat'},
+  {sentence:'The dog ran in the park.',question:'Where did the dog run?',choices:['in the park','at school','in the house','at the beach'],answer:'in the park'},
+  {sentence:'The sun is big and hot.',question:'What is the sun like?',choices:['big and hot','small and cold','blue and round','soft and fluffy'],answer:'big and hot'},
+  {sentence:'I love to read books.',question:'What does the person love?',choices:['to read books','to eat cake','to play games','to sleep'],answer:'to read books'},
+  {sentence:'The bird has pretty wings.',question:'What does the bird have?',choices:['pretty wings','sharp claws','a big hat','red shoes'],answer:'pretty wings'},
+  {sentence:'We play outside in the rain.',question:'When do we play outside?',choices:['in the rain','at night','after dinner','in winter'],answer:'in the rain'}
+];
+
+function setReadingLevel(level) {
+  readingLevel = level;
+  questionCount = 0;
+  updateReadingLevelUI();
+  generateReadingQuestion();
+}
+
+function updateReadingLevelUI() {
+  ['sounds','vowels','words','sentences'].forEach(l => {
+    const el = document.getElementById('lvl-'+l);
+    if (el) el.classList.toggle('active', l === readingLevel);
+  });
+}
+
+function generateReadingQuestion() {
+  const content = document.getElementById('reading-content');
+  const choices = document.getElementById('reading-choices');
+  questionCount++;
+  updateProgress('reading', Math.min((questionCount/totalQuestions)*100, 100));
+
+  if (readingLevel === 'sounds') {
+    const item = SOUNDS[Math.floor(Math.random()*SOUNDS.length)];
+    const cls = item.isVowel ? 'vowel' : 'consonant';
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="question-sub">What sound does this letter make?</div>
+        <div class="letter-display"><span class="${cls}">${item.letter}</span></div>
+        <div class="question-sub">${item.isVowel ? '(This is a Vowel! 🌟)' : '(This is a Consonant!)'}</div>
+      </div>`;
+    currentSpeak = 'The letter ' + item.letter + ' makes the ' + item.sound + ' sound.';
+    speak('What sound does the letter ' + item.letter + ' make?', 0.8, 1.4);
+    const wrong = SOUNDS.filter(s=>s.letter!==item.letter).sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = shuffle([item,...wrong]);
+    choices.innerHTML = opts.map(o=>`<button class="choice-btn" onclick="checkReading(this,'${o.sound}','${item.sound}')">${o.sound}</button>`).join('');
+
+  } else if (readingLevel === 'vowels') {
+    const isVowelQ = Math.random() > 0.4;
+    const letter = isVowelQ
+      ? VOWELS[Math.floor(Math.random()*VOWELS.length)]
+      : 'BCDFGHJKLMNPQRSTVWXYZ'.split('')[Math.floor(Math.random()*20)];
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="question-sub">Is this letter a Vowel or Consonant?</div>
+        <div class="letter-display"><span style="color:white">${letter}</span></div>
+        <div class="question-sub">Vowels: A, E, I, O, U 🌟</div>
+      </div>`;
+    currentSpeak = 'Is the letter ' + letter + ' a vowel or a consonant?';
+    const correct = VOWELS.includes(letter) ? 'Vowel! 🌟' : 'Consonant!';
+    speak(currentSpeak, 0.85, 1.4);
+    choices.innerHTML = `
+      <button class="choice-btn" onclick="checkReading(this,'${VOWELS.includes(letter)?'Vowel! 🌟':'Vowel! 🌟'}','${correct}')">Vowel! 🌟</button>
+      <button class="choice-btn" onclick="checkReading(this,'Consonant!','${correct}')">Consonant!</button>`;
+
+  } else if (readingLevel === 'words') {
+    const item = CVC_WORDS[Math.floor(Math.random()*CVC_WORDS.length)];
+    const wrongs = CVC_WORDS.filter(w=>w.word!==item.word).sort(()=>Math.random()-0.5).slice(0,3);
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="question-sub">Which word matches this picture?</div>
+        <div class="letter-display">${item.pic}</div>
+      </div>`;
+    currentSpeak = item.word;
+    speak('Which word matches this picture? ' + item.word, 0.8, 1.4);
+    const opts = shuffle([item,...wrongs]);
+    choices.innerHTML = opts.map(o=>`<button class="choice-btn" onclick="checkReading(this,'${o.word}','${item.word}')">${o.word}</button>`).join('');
+
+  } else if (readingLevel === 'sentences') {
+    const item = SENTENCES[Math.floor(Math.random()*SENTENCES.length)];
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="sentence-display" style="color:white">${item.sentence}</div>
+        <div class="question-sub" style="margin-top:12px">${item.question}</div>
+      </div>`;
+    currentSpeak = item.sentence + '. ' + item.question;
+    speak(item.sentence, 0.8, 1.4);
+    const opts = shuffle([...item.choices]);
+    choices.innerHTML = opts.map(o=>`<button class="choice-btn" onclick="checkReading(this,'${o.replace(/'/g,'&apos;')}','${item.answer.replace(/'/g,'&apos;')}')">${o}</button>`).join('');
+  }
+}
+
+function checkReading(btn, chosen, correct) {
+  const btns = document.querySelectorAll('#reading-choices .choice-btn');
+  btns.forEach(b => b.onclick = null);
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    addScore(2); showFeedback(true);
+    speak('Great job! That is correct!', 0.9, 1.6);
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent.trim() === correct) b.classList.add('correct'); });
+    speak('Good try! The answer is ' + correct, 0.9, 1.4);
+    showFeedback(false);
+  }
+  setTimeout(() => { if (questionCount < totalQuestions) generateReadingQuestion(); else showCompletion(); }, 1800);
+}
+// ==================== MATH ====================
+const SHAPES = [
+  {name:'Circle',pic:'⭕',sides:'no corners'},{name:'Square',pic:'🟥',sides:'4 equal sides'},
+  {name:'Triangle',pic:'🔺',sides:'3 sides'},{name:'Rectangle',pic:'🟦',sides:'4 sides'},
+  {name:'Star',pic:'⭐',sides:'5 points'},{name:'Heart',pic:'❤️',sides:'round shape'},
+  {name:'Diamond',pic:'🔷',sides:'4 sides like a tilted square'},{name:'Oval',pic:'🥚',sides:'like a stretched circle'}
+];
+const EMOJIS_COUNT = ['🍎','🌟','🐶','🍓','🎈','🦋','🌻','🐸','🍕','🎪'];
+
+function setMathLevel(level) {
+  mathLevel = level;
+  questionCount = 0;
+  updateMathLevelUI();
+  generateMathQuestion();
+}
+
+function updateMathLevelUI() {
+  ['counting','addition','subtraction','shapes'].forEach(l => {
+    const id = 'lvl-' + (l === 'counting' ? 'counting' : l === 'addition' ? 'addition' : l === 'subtraction' ? 'subtraction' : 'shapes');
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', l === mathLevel);
+  });
+}
+
+function generateMathQuestion() {
+  const content = document.getElementById('math-content');
+  const choices = document.getElementById('math-choices');
+  questionCount++;
+  updateProgress('math', Math.min((questionCount/totalQuestions)*100, 100));
+
+  if (mathLevel === 'counting') {
+    const num = Math.floor(Math.random()*9)+1;
+    const emoji = EMOJIS_COUNT[Math.floor(Math.random()*EMOJIS_COUNT.length)];
+    const display = Array(num).fill(emoji).join(' ');
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="question-sub">How many do you see?</div>
+        <div class="math-objects">${display}</div>
+      </div>`;
+    currentSpeak = 'How many do you see? Count them!';
+    speak('How many do you see? Count them!', 0.8, 1.4);
+    const wrong = new Set(); wrong.add(num);
+    while (wrong.size < 4) { let n = num + Math.floor(Math.random()*5)-2; if(n>0&&n<=15) wrong.add(n); }
+    const opts = shuffle([...wrong]);
+    choices.innerHTML = opts.map(n=>`<button class="choice-btn" onclick="checkMath(this,${n},${num})">${n}</button>`).join('');
+
+  } else if (mathLevel === 'addition') {
+    const a = Math.floor(Math.random()*6)+1, b = Math.floor(Math.random()*6)+1;
+    const ans = a + b;
+    const emoji1 = EMOJIS_COUNT[Math.floor(Math.random()*EMOJIS_COUNT.length)];
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="math-objects">${Array(a).fill(emoji1).join(' ')} + ${Array(b).fill(emoji1).join(' ')}</div>
+        <div class="math-display" style="color:white">${a} + ${b} = ?</div>
+      </div>`;
+    currentSpeak = a + ' plus ' + b + ' equals what?';
+    speak(a + ' plus ' + b + ' equals what?', 0.85, 1.4);
+    const opts = makeNumOpts(ans);
+    choices.innerHTML = opts.map(n=>`<button class="choice-btn" onclick="checkMath(this,${n},${ans})">${n}</button>`).join('');
+
+  } else if (mathLevel === 'subtraction') {
+    const a = Math.floor(Math.random()*8)+3, b = Math.floor(Math.random()*(a-1))+1;
+    const ans = a - b;
+    const emoji1 = EMOJIS_COUNT[Math.floor(Math.random()*EMOJIS_COUNT.length)];
+    content.innerHTML = `
+      <div class="question-box">
+        <div class="math-display" style="color:white">${a} - ${b} = ?</div>
+        <div class="question-sub">Take away ${b} from ${a}</div>
+      </div>`;
+    currentSpeak = a + ' minus ' + b + ' equals what?';
+    speak(a + ' minus ' + b + ' equals what?', 0.85, 1.4);
+    const opts = makeNumOpts(ans);
+    choices.innerHTML = opts.map(n=>`<button class="choice-btn" onclick="checkMath(this,${n},${ans})">${n}</button>`).join('');
+
+  } else if (mathLevel === 'shapes') {
+    const item = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+    const question = Math.random()>0.5 ? 'name' : 'sides';
+    if (question === 'name') {
+      content.innerHTML = `
+        <div class="question-box">
+          <div class="question-sub">What shape is this?</div>
+          <div class="letter-display">${item.pic}</div>
+        </div>`;
+      currentSpeak = 'What shape is this?';
+      speak('What shape is this?', 0.85, 1.4);
+      const wrong = SHAPES.filter(s=>s.name!==item.name).sort(()=>Math.random()-0.5).slice(0,3);
+      const opts = shuffle([item,...wrong]);
+      choices.innerHTML = opts.map(s=>`<button class="choice-btn" onclick="checkMath(this,'${s.name}','${item.name}')">${s.name}</button>`).join('');
+    } else {
+      content.innerHTML = `
+        <div class="question-box">
+          <div class="letter-display">${item.pic}</div>
+          <div class="question-sub">How many sides does a ${item.name} have?</div>
+        </div>`;
+      currentSpeak = 'How many sides does a ' + item.name + ' have? It has ' + item.sides;
+      speak('How many sides does a ' + item.name + ' have?', 0.85, 1.4);
+      const allSides = SHAPES.filter(s=>s.name!==item.name).sort(()=>Math.random()-0.5).slice(0,3).map(s=>s.sides);
+      const opts = shuffle([item.sides, ...allSides]);
+      choices.innerHTML = opts.map(s=>`<button class="choice-btn" onclick="checkMath(this,'${s.replace(/'/g,'&apos;')}','${item.sides.replace(/'/g,'&apos;')}')" style="font-size:13px">${s}</button>`).join('');
+    }
+  }
+}
+
+function makeNumOpts(ans) {
+  const set = new Set([ans]);
+  while(set.size<4){let n=ans+Math.floor(Math.random()*7)-3;if(n>=0&&n<=20)set.add(n);}
+  return shuffle([...set]);
+}
+
+function checkMath(btn, chosen, correct) {
+  const chosenStr = String(chosen), correctStr = String(correct);
+  const btns = document.querySelectorAll('#math-choices .choice-btn');
+  btns.forEach(b => b.onclick = null);
+  if (chosenStr === correctStr) {
+    btn.classList.add('correct'); addScore(2); showFeedback(true);
+    speak('Excellent! You got it right!', 0.9, 1.6);
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent.trim() === correctStr) b.classList.add('correct'); });
+    speak('Good try! The answer is ' + correct, 0.9, 1.4); showFeedback(false);
+  }
+  setTimeout(() => { if (questionCount < totalQuestions) generateMathQuestion(); else showCompletion(); }, 1800);
+    }
+// ==================== BLACK HISTORY ====================
+const HISTORY_DATA = [
+  {person:'Harriet Tubman',emoji:'👩🏾',fact:'Harriet Tubman was a very brave woman who helped hundreds of people escape slavery through secret paths called the Underground Railroad. She was called "Moses" because she led her people to freedom!',question:'What was Harriet Tubman known for?',choices:['Helping people to freedom','Building a rocket','Painting pictures','Writing songs'],answer:'Helping people to freedom'},
+  {person:'Martin Luther King Jr.',emoji:'👨🏾‍💼',fact:'Dr. Martin Luther King Jr. was a peaceful leader who gave amazing speeches about fairness and equality. His most famous speech was "I Have a Dream." He wanted everyone to be treated the same no matter their skin color!',question:'What did Dr. King dream about?',choices:['Everyone being treated fairly','Flying to the moon','Eating ice cream','Building tall buildings'],answer:'Everyone being treated fairly'},
+  {person:'Rosa Parks',emoji:'👩🏾‍💼',fact:'Rosa Parks was a very brave woman who refused to give up her seat on a bus. She helped start a big movement for equal rights. She is called "the mother of the freedom movement!"',question:'What did Rosa Parks refuse to do?',choices:['Give up her bus seat','Go to school','Eat vegetables','Read a book'],answer:'Give up her bus seat'},
+  {person:'Barack Obama',emoji:'👨🏾‍💼',fact:'Barack Obama became the first Black President of the United States in 2009! He worked very hard, went to great schools, and showed the whole world that you can achieve anything you dream of!',question:'What did Barack Obama become first?',choices:['First Black President','First astronaut','First teacher','First doctor'],answer:'First Black President'},
+  {person:'Mae Jemison',emoji:'👩🏾‍🚀',fact:'Mae Jemison was the first Black woman to travel to space! She was a doctor AND an astronaut. She blasted off into outer space in 1992 and proved that girls can do anything!',question:'What was Mae Jemison the first to do?',choices:['Black woman in space','Run a marathon','Build a bridge','Teach at school'],answer:'Black woman in space'},
+  {person:'George Washington Carver',emoji:'👨🏾‍🔬',fact:'George Washington Carver was an amazing scientist who discovered over 300 ways to use peanuts! He helped farmers grow better food and created many inventions. He loved plants and science!',question:'What did Carver do with peanuts?',choices:['Found 300 uses for them','Ate them all up','Planted a garden','Made a necklace'],answer:'Found 300 uses for them'},
+  {person:'Serena Williams',emoji:'🎾',fact:'Serena Williams is one of the greatest tennis players EVER! She won 23 Grand Slam titles and showed the whole world that hard work and practice can make your dreams come true. She is a true champion!',question:'What sport made Serena famous?',choices:['Tennis','Soccer','Basketball','Swimming'],answer:'Tennis'},
+  {person:'Misty Copeland',emoji:'🩰',fact:'Misty Copeland became the first Black woman to be named a principal dancer at the American Ballet Theatre. She started ballet at age 13 and worked very hard to become a beautiful, world-famous ballerina!',question:'What art form is Misty Copeland famous for?',choices:['Ballet dancing','Painting','Singing','Cooking'],answer:'Ballet dancing'}
+];
+
+let historyIdx = 0;
+let historyOrder = [];
+
+function generateHistoryQuestion() {
+  if (historyOrder.length === 0) {
+    historyOrder = shuffle([...Array(HISTORY_DATA.length).keys()]);
+  }
+  const content = document.getElementById('history-content');
+  const choices = document.getElementById('history-choices');
+  questionCount++;
+  updateProgress('history', Math.min((questionCount/totalQuestions)*100, 100));
+  const item = HISTORY_DATA[historyOrder[questionCount % historyOrder.length]];
+  currentSpeak = item.fact;
+  content.innerHTML = `
+    <div class="question-box">
+      <div class="history-person">${item.emoji}</div>
+      <div class="history-name">${item.person}</div>
+    </div>
+    <div class="card" style="margin-top:8px">
+      <div class="history-fact">${item.fact}</div>
+    </div>
+    <div style="text-align:center;margin:8px 0;font-size:16px;font-weight:bold;color:#764ba2">${item.question}</div>
+  `;
+  speak(item.person + '. ' + item.fact, 0.8, 1.3);
+  const opts = shuffle([...item.choices]);
+  choices.innerHTML = opts.map(o=>`<button class="choice-btn" onclick="checkHistory(this,'${o.replace(/'/g,'&apos;')}','${item.answer.replace(/'/g,'&apos;')}')">${o}</button>`).join('');
+}
+
+function checkHistory(btn, chosen, correct) {
+  const btns = document.querySelectorAll('#history-choices .choice-btn');
+  btns.forEach(b => b.onclick = null);
+  if (chosen === correct) {
+    btn.classList.add('correct'); addScore(3); showFeedback(true);
+    speak('Wonderful! You know your history! You are so smart!', 0.9, 1.5);
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent.trim() === correct) b.classList.add('correct'); });
+    speak('Good try! The answer is ' + correct, 0.9, 1.4); showFeedback(false);
+  }
+  setTimeout(() => { if (questionCount < totalQuestions) generateHistoryQuestion(); else showCompletion(); }, 2200);
+}
+// ==================== AI LITERACY ====================
+const AI_DATA = [
+  {topic:'What is AI?',emoji:'🤖',explain:'AI stands for Artificial Intelligence! It means teaching computers to think and learn, kind of like how YOU learn new things at school. AI helps computers see pictures, understand words, and answer questions!',question:'What does AI stand for?',choices:['Artificial Intelligence','Amazing Ideas','Animal Island','Art and Imagination'],answer:'Artificial Intelligence'},
+  {topic:'How does AI learn?',emoji:'📚',explain:'AI learns by looking at LOTS and LOTS of examples. Just like you learned the alphabet by practicing over and over, AI learns by studying millions of pictures, words, and sounds!',question:'How does AI learn new things?',choices:['From lots of examples','By going to school','By watching TV','By sleeping'],answer:'From lots of examples'},
+  {topic:'AI can see pictures!',emoji:'👁️',explain:'AI can look at a picture and tell you what is in it. Show AI a picture of a dog, and it can say "That is a dog!" This is called Image Recognition. Isn't that cool?',question:'What can AI do with pictures?',choices:['Recognize what is in them','Eat them','Draw them bigger','Print them out'],answer:'Recognize what is in them'},
+  {topic:'AI talks to us!',emoji:'💬',explain:'Some AI can understand your words and talk back to you! Voice assistants like Siri or Alexa use AI. When you ask them a question, AI helps them understand what you said and find an answer!',question:'What do voice assistants use?',choices:['Artificial Intelligence','Magic spells','Invisible friends','Telephone wires'],answer:'Artificial Intelligence'},
+  {topic:'AI in games!',emoji:'🎮',explain:'AI is in many video games! When you play a game by yourself, the characters you play against are controlled by AI. The AI helps them make decisions, like where to go and what to do next!',question:'What does AI control in video games?',choices:['Game characters','The screen','The music','The controller'],answer:'Game characters'},
+  {topic:'AI helps doctors!',emoji:'🏥',explain:'AI can help doctors look at X-rays and find if someone is sick. It is like a helper that can look at pictures very carefully. AI helps make sure people get the right help!',question:'How does AI help doctors?',choices:['By looking at X-rays','By giving medicine','By cooking food','By driving cars'],answer:'By looking at X-rays'},
+  {topic:'Be smart with AI!',emoji:'🛡️',explain:'AI is a tool, just like a pencil or calculator. It can make mistakes, so we should always have a grown-up help us use it. Never share your personal information like your name, address, or phone number with any AI!',question:'What should you do when using AI?',choices:['Have a grown-up help you','Use it all alone','Share all your info','Trust everything it says'],answer:'Have a grown-up help you'},
+  {topic:'YOU could build AI!',emoji:'🌟',explain:'You could grow up to be an AI scientist! People who build AI are called engineers and data scientists. If you love math, science, and puzzles, you might build amazing AI robots and programs one day!',question:'What could you be if you build AI?',choices:['An engineer or scientist','A chef','A pilot','A firefighter'],answer:'An engineer or scientist'}
+];
+
+function generateAIQuestion() {
+  const content = document.getElementById('ai-content');
+  const choices = document.getElementById('ai-choices');
+  questionCount++;
+  updateProgress('ai', Math.min((questionCount/totalQuestions)*100, 100));
+  const item = AI_DATA[(questionCount-1) % AI_DATA.length];
+  currentSpeak = item.explain;
+  content.innerHTML = `
+    <div class="question-box">
+      <div class="history-person">${item.emoji}</div>
+      <div class="history-name">${item.topic}</div>
+    </div>
+    <div class="ai-scenario">${item.explain}</div>
+    <div style="text-align:center;margin:8px 0;font-size:16px;font-weight:bold;color:#9B59B6">${item.question}</div>
+  `;
+  speak(item.topic + '. ' + item.explain, 0.8, 1.3);
+  const opts = shuffle([...item.choices]);
+  choices.innerHTML = opts.map(o=>`<button class="choice-btn" onclick="checkAI(this,'${o.replace(/'/g,'&apos;')}','${item.answer.replace(/'/g,'&apos;')}')">${o}</button>`).join('');
+}
+
+function checkAI(btn, chosen, correct) {
+  const btns = document.querySelectorAll('#ai-choices .choice-btn');
+  btns.forEach(b => b.onclick = null);
+  if (chosen === correct) {
+    btn.classList.add('correct'); addScore(3); showFeedback(true);
+    speak('Amazing! You are so smart about technology!', 0.9, 1.5);
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent.trim() === correct) b.classList.add('correct'); });
+    speak('Good try! The answer is ' + correct, 0.9, 1.4); showFeedback(false);
+  }
+  setTimeout(() => { if (questionCount < AI_DATA.length) generateAIQuestion(); else showCompletion(); }, 2000);
+}
+// ==================== DRAWING ====================
+const DRAW_WORDS = [
+  {word:'a cat',hint:'🐱'},{word:'a dog',hint:'🐶'},{word:'the sun',hint:'☀️'},
+  {word:'a house',hint:'🏠'},{word:'a tree',hint:'🌳'},{word:'a flower',hint:'🌸'},
+  {word:'a star',hint:'⭐'},{word:'a heart',hint:'❤️'},{word:'a bird',hint:'🐦'},
+  {word:'a fish',hint:'🐟'},{word:'a rainbow',hint:'🌈'},{word:'a cloud',hint:'☁️'},
+  {word:'Harriet Tubman',hint:'✊🏾'},{word:'a rocket ship',hint:'🚀'},
+  {word:'a robot',hint:'🤖'},{word:'a book',hint:'📚'}
+];
+const COLORS = ['#000000','#e53935','#FF8C42','#FFD93D','#6BCB77','#4ECDC4','#2196F3','#9B59B6','#FF6B9D','#795548','#FFFFFF'];
+let currentColor = '#000000';
+let currentBrush = 6;
+let isDrawing = false;
+let isEraser = false;
+let lastX = 0, lastY = 0;
+let drawCanvas, ctx;
+
+function initDrawing() {
+  drawCanvas = document.getElementById('draw-canvas');
+  ctx = drawCanvas.getContext('2d');
+  
+  // Responsive canvas
+  const maxW = Math.min(window.innerWidth - 48, 620);
+  drawCanvas.width = maxW;
+  drawCanvas.height = Math.round(maxW * 0.55);
+  
+  ctx.fillStyle = '#FAFAFA';
+  ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Color palette
+  const palette = document.getElementById('color-palette');
+  palette.innerHTML = COLORS.map(c=>`<div class="color-swatch ${c===currentColor?'active':''}" style="background:${c};border-color:${c==='#FFFFFF'?'#ccc':'transparent'}" onclick="setColor('${c}')" data-color="${c}"></div>`).join('');
+
+  // Brush sizes
+  const brushDiv = document.getElementById('brush-sizes');
+  brushDiv.innerHTML = '<span style="font-size:13px;color:#666">Brush size:</span>' +
+    [3,6,12,20].map(s=>`<button class="brush-btn ${s===currentBrush?'active':''}" onclick="setBrush(${s})" data-size="${s}"><div style="width:${s}px;height:${s}px;background:#333;border-radius:50%"></div></button>`).join('');
+
+  // Events - mouse
+  drawCanvas.addEventListener('mousedown', startDraw);
+  drawCanvas.addEventListener('mousemove', draw);
+  drawCanvas.addEventListener('mouseup', stopDraw);
+  drawCanvas.addEventListener('mouseleave', stopDraw);
+
+  // Events - touch
+  drawCanvas.addEventListener('touchstart', e=>{e.preventDefault();const t=e.touches[0];const r=drawCanvas.getBoundingClientRect();startDraw({offsetX:t.clientX-r.left,offsetY:t.clientY-r.top});},{passive:false});
+  drawCanvas.addEventListener('touchmove', e=>{e.preventDefault();const t=e.touches[0];const r=drawCanvas.getBoundingClientRect();draw({offsetX:t.clientX-r.left,offsetY:t.clientY-r.top});},{passive:false});
+  drawCanvas.addEventListener('touchend', stopDraw);
+
+  newDrawWord();
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  lastX = e.offsetX; lastY = e.offsetY;
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, (isEraser?20:currentBrush)/2, 0, Math.PI*2);
+  ctx.fillStyle = isEraser ? '#FAFAFA' : currentColor;
+  ctx.fill();
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.strokeStyle = isEraser ? '#FAFAFA' : currentColor;
+  ctx.lineWidth = isEraser ? 30 : currentBrush;
+  ctx.stroke();
+  lastX = e.offsetX; lastY = e.offsetY;
+}
+
+function stopDraw() { isDrawing = false; }
+
+function setColor(c) {
+  currentColor = c; isEraser = false;
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.toggle('active', s.dataset.color === c));
+  document.getElementById('eraser-btn').style.borderColor = '#888';
+  document.getElementById('eraser-btn').style.color = '#555';
+}
+
+function setBrush(s) {
+  currentBrush = s;
+  document.querySelectorAll('.brush-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.size)===s));
+}
+
+function toggleEraser() {
+  isEraser = !isEraser;
+  const btn = document.getElementById('eraser-btn');
+  btn.style.borderColor = isEraser ? '#e53935' : '#888';
+  btn.style.color = isEraser ? '#e53935' : '#555';
+  btn.textContent = isEraser ? '✏️ Draw' : '⬜ Eraser';
+}
+
+function clearCanvas() {
+  if (!ctx) return;
+  ctx.fillStyle = '#FAFAFA';
+  ctx.fillRect(0,0,drawCanvas.width,drawCanvas.height);
+}
+
+function newDrawWord() {
+  const item = DRAW_WORDS[Math.floor(Math.random()*DRAW_WORDS.length)];
+  document.getElementById('draw-word').textContent = item.word + ' ' + item.hint;
+  speak('Draw ' + item.word, 0.9, 1.5);
+}
+
+function speakDrawWord() {
+  const w = document.getElementById('draw-word').textContent;
+  speak('Draw ' + w, 0.9, 1.5);
+}
+
+// ==================== COMPLETION ====================
+function showCompletion() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const cs = document.getElementById('completion-screen');
+  cs.style.display = 'flex';
+  cs.classList.add('active');
+  document.getElementById('final-score-display').textContent = score;
+  const stars = document.getElementById('completion-stars');
+  const numStars = Math.min(Math.ceil(score/4), 10);
+  stars.innerHTML = Array(numStars).fill('<span class="star">⭐</span>').join('');
+  const msgs = score > 20 ? 'You are absolutely AMAZING!' : score > 10 ? 'You did a great job!' : 'You are learning so much!';
+  speak('You finished! ' + msgs + ' You scored ' + score + ' stars!', 0.9, 1.5);
+  confetti(); confetti(); confetti();
+}
+
+// ==================== CONFETTI ====================
+function confetti() {
+  const colors = ['#FF6B9D','#FFD93D','#6BCB77','#4ECDC4','#9B59B6','#FF8C42'];
+  for (let i=0; i<24; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.cssText = `left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*1.5}s;animation-duration:${1.5+Math.random()*2}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+}
+
+// ==================== UTILITIES ====================
+function shuffle(arr) {
+  for (let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  return arr;
+}
+
+// ==================== INIT ====================
+window.addEventListener('load', () => {
+  speak('Hi! I am Chipmunk! Welcome to Learning with Chipmunk! Tap a subject to start learning!', 0.85, 1.5);
+  voices = synth.getVoices();
+});
+</script>
+</body>
+</html>
