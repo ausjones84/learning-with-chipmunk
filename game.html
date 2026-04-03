@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Learning with Chipmunk!</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;flex-direction:column}
+@keyframes rainbow{0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.7)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes streakPop{0%{transform:scale(1)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
+#hdr{background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);background-size:300%;animation:rainbow 4s linear infinite;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 10px rgba(0,0,0,0.3);flex-shrink:0}
+#hdr h1{font-size:clamp(14px,4vw,22px);color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.5)}
+#chip{font-size:30px;cursor:pointer;animation:bounce 2s ease-in-out infinite;user-select:none}
+#sdp{background:rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer}
+#streak-bar{display:flex;align-items:center;gap:3px;padding:3px 8px;background:rgba(255,255,255,0.2);border-radius:14px;font-size:13px;color:#fff}
+.scr{display:none;flex-direction:column;align-items:center;flex:1;padding:12px 14px 20px;overflow-y:auto;gap:10px}
+#menu{display:flex}
+#menu h2{font-size:clamp(18px,5vw,28px);color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.4);text-align:center}
+#mg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:580px}
+.card{background:#fff;border-radius:22px;padding:18px 10px;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 5px 15px rgba(0,0,0,0.2);text-align:center;border:3px solid transparent;user-select:none;animation:popIn 0.4s both}
+.card:hover,.card:active{transform:scale(1.09)!important;box-shadow:0 10px 25px rgba(0,0,0,0.3)}
+.card .ic{font-size:clamp(30px,8vw,50px);margin-bottom:6px}
+.card .lbl{font-size:clamp(11px,3vw,14px);font-weight:700;color:#333}
+.card:nth-child(1){border-color:#ff6b6b;animation-delay:0.05s}
+.card:nth-child(2){border-color:#feca57;animation-delay:0.1s}
+.card:nth-child(3){border-color:#ff9ff3;animation-delay:0.15s}
+.card:nth-child(4){border-color:#48dbfb;animation-delay:0.2s}
+.card:nth-child(5){border-color:#7bed9f;animation-delay:0.25s}
+#tp{color:rgba(255,255,255,0.7);font-size:12px;text-align:center}
+.sec-hdr{font-size:clamp(16px,5vw,26px);color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.4);text-align:center;flex-shrink:0}
+.hbtn{background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.55);border-radius:25px;padding:8px 18px;color:#fff;font-family:inherit;font-size:14px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.hbtn:hover{background:rgba(255,255,255,0.4)}
+.cbox{background:rgba(255,255,255,0.97);border-radius:22px;padding:18px;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;box-shadow:0 5px 18px rgba(0,0,0,0.18);animation:fadeSlide 0.35s both;min-height:180px}
+.opt{background:#fff;border:3px solid #e0e0e0;border-radius:18px;padding:14px 20px;font-family:inherit;font-size:clamp(15px,4vw,19px);cursor:pointer;transition:all .18s;font-weight:700;color:#333;min-width:90px;user-select:none}
+.opt:hover,.opt:active{transform:scale(1.1);border-color:#9b59b6;background:#f8f0ff}
+.opt.correct{background:#4CAF50!important;color:#fff!important;border-color:#388e3c!important;transform:scale(1.12)!important;animation:popIn 0.3s both}
+.opt.wrong{background:#f44336!important;color:#fff!important;border-color:#c62828!important;animation:shake 0.4s both}
+.lvls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;flex-shrink:0}
+.lvl{background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.55);border-radius:20px;padding:9px 16px;color:#fff;font-family:inherit;font-size:clamp(12px,3.5vw,15px);cursor:pointer;transition:all .18s;user-select:none}
+.lvl:hover,.lvl.active{background:rgba(255,255,255,0.5);transform:scale(1.06);border-color:#fff}
+.draw-prompt{font-size:clamp(18px,5vw,26px);font-weight:700;text-align:center;color:#198754;flex-shrink:0}
+.canvas-wrap{display:flex;justify-content:center;width:100%;max-width:560px;flex-shrink:0}
+#canvas{border:3px solid #ddd;border-radius:14px;background:#fff;touch-action:none;cursor:crosshair;width:100%;max-width:540px;height:210px;box-shadow:0 3px 10px rgba(0,0,0,0.1)}
+.palette{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;flex-shrink:0}
+.swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid #999;transition:transform .15s,outline .1s}
+.swatch:hover,.swatch:active{transform:scale(1.35)}
+.bsizes{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.draw-ctrls{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;flex-shrink:0}
+.dbtn{background:rgba(255,255,255,0.28);border:2px solid rgba(255,255,255,0.65);border-radius:14px;padding:9px 15px;color:#fff;font-family:inherit;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.dbtn:hover{background:rgba(255,255,255,0.5)}
+.done-card{background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:28px;padding:28px 20px;width:100%;max-width:400px;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,0.3);animation:popIn 0.5s both}
+.again-btn{background:linear-gradient(135deg,#11998e,#38ef7d);border:none;border-radius:22px;padding:16px 32px;color:#fff;font-family:inherit;font-size:20px;font-weight:700;cursor:pointer;margin-top:16px;box-shadow:0 5px 14px rgba(0,0,0,0.2);transition:transform .18s}
+.again-btn:hover{transform:scale(1.07)}
+#fb{position:fixed;bottom:56px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.82);color:#fff;padding:10px 24px;border-radius:25px;font-size:16px;display:none;z-index:200;text-align:center;animation:popIn 0.3s both;white-space:nowrap}
+.og{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;width:100%}
+@media(max-width:420px){#mg{grid-template-columns:repeat(2,1fr)}.opt{font-size:15px;padding:12px 14px}}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <span id="chip" onclick="chipClick()">&#x1F43F;&#xFE0F;</span>
+  <h1>Learning with Chipmunk!</h1>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <div id="streak-bar" title="Streak">&#x1F525; <span id="stk">0</span></div>
+    <div id="sdp" onclick="goHome()">&#x2B50; <span id="sv">0</span></div>
+  </div>
+</div>
+<div id="fb"></div>
+
+<!-- HOME MENU -->
+<div id="menu" class="scr">
+  <h2>&#x1F31F; What do you want to learn today? &#x1F31F;</h2>
+  <div id="mg">
+    <div class="card" onclick="go('reading')" style="animation-delay:0.05s">
+      <div class="ic">&#x1F4DA;</div>
+      <div class="lbl">Reading &amp; Sounds</div>
+    </div>
+    <div class="card" onclick="go('math')" style="animation-delay:0.1s">
+      <div class="ic">&#x1F522;</div>
+      <div class="lbl">Fun Math</div>
+    </div>
+    <div class="card" onclick="go('history')" style="animation-delay:0.15s">
+      <div class="ic">&#x270A;&#x1F3FE;</div>
+      <div class="lbl">Black History Heroes</div>
+    </div>
+    <div class="card" onclick="go('ai')" style="animation-delay:0.2s">
+      <div class="ic">&#x1F916;</div>
+      <div class="lbl">What is AI?</div>
+    </div>
+    <div class="card" onclick="go('drawing')" style="animation-delay:0.25s">
+      <div class="ic">&#x1F3A8;</div>
+      <div class="lbl">Drawing Game</div>
+    </div>
+  </div>
+  <p id="tp">Tap Chipmunk &#x1F43F;&#xFE0F; for a fun message!</p>
+</div>
+
+<!-- READING SECTION -->
+<div id="reading" class="scr">
+  <div class="sec-hdr">&#x1F4DA; Reading with Chipmunk!</div>
+  <div class="lvls">
+    <div class="lvl" id="ls" onclick="setR('sounds')">&#x1F50A; Sounds</div>
+    <div class="lvl" id="lv" onclick="setR('vowels')">&#x1F170;&#xFE0F; Vowels</div>
+    <div class="lvl" id="lw" onclick="setR('words')">&#x1F4DD; Words</div>
+    <div class="lvl" id="lx" onclick="setR('sentences')">&#x1F4D6; Sentences</div>
+  </div>
+  <div id="rp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- MATH SECTION -->
+<div id="math" class="scr">
+  <div class="sec-hdr">&#x1F522; Math Fun!</div>
+  <div class="lvls">
+    <div class="lvl" id="mc" onclick="setM(1)">&#x1F34E; Counting</div>
+    <div class="lvl" id="ma" onclick="setM(1)">&#x2795; Adding</div>
+    <div class="lvl" id="ms" onclick="setM(2)">&#x2796; Taking Away</div>
+    <div class="lvl" id="msh" onclick="setM(3)">&#x1F537; Shapes</div>
+  </div>
+  <div id="mp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- HISTORY SECTION -->
+<div id="history" class="scr">
+  <div class="sec-hdr">&#x270A;&#x1F3FE; Black History Heroes!</div>
+  <div id="hp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- AI SECTION -->
+<div id="ai" class="scr">
+  <div class="sec-hdr">&#x1F916; What is Artificial Intelligence?</div>
+  <div id="ap" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- DRAWING SECTION -->
+<div id="drawing" class="scr">
+  <div class="draw-prompt">Draw: <span id="dw">a cat &#x1F431;</span></div>
+  <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+  <div class="palette" id="pal"></div>
+  <div class="bsizes" id="bsz"></div>
+  <div class="draw-ctrls">
+    <button class="dbtn" onclick="clearC()" style="border-color:#e53935;color:#ffe0e0">&#x1F5D1;&#xFE0F; Clear</button>
+    <button class="dbtn" onclick="toggleE()" id="ebtn">&#x25A1; Eraser</button>
+    <button class="dbtn" onclick="newWord()" style="border-color:#7bed9f;color:#e8ffe8">&#x1F500; New Word</button>
+    <button class="dbtn" onclick="sayWord()" style="border-color:#74b9ff;color:#e8f4ff">&#x1F50A; Say It</button>
+  </div>
+  <p style="text-align:center;font-size:13px;color:rgba(255,255,255,0.65)">Use your finger or mouse to draw!</p>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- DONE SCREEN -->
+<div id="done" class="scr">
+  <div class="done-card">
+    <div style="font-size:clamp(50px,15vw,80px);animation:bounce 1s infinite;line-height:1">&#x1F389;</div>
+    <div style="font-size:clamp(22px,7vw,36px);font-weight:900;color:#fff;margin:8px 0">Amazing Job!</div>
+    <div style="font-size:16px;color:rgba(255,255,255,0.85);margin-bottom:8px">You scored</div>
+    <div id="ds" style="font-size:clamp(36px,10vw,56px);font-weight:900;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.3)">0</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.75);margin-bottom:6px">points!</div>
+    <div id="dstars" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:8px 0;font-size:26px"></div>
+    <button class="again-btn" onclick="goHome()">&#x1F3E0; Play Again!</button>
+  </div>
+</div>
+
+<script>
+var score=0,streak=0,curSec='';
+var synth=window.speechSynthesis;
+function say(txt){
+  if(!synth)return;
+  synth.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.rate=0.85;u.pitch=1.4;u.volume=1;
+  synth.speak(u);
+}
+function speakChipmunk(txt){
+  if(!synth)return;
+  synth.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.rate=1.3;u.pitch=1.9;u.volume=1;
+  synth.speak(u);
+}
+function chipClick(){
+  var msgs=['Hi! I am Chipmunk! Keep learning!','You are SO smart!','Learning is super fun!','Tap a subject and let\'s go!','You are going to do amazing!','I believe in you!'];
+  speakChipmunk(msgs[Math.floor(Math.random()*msgs.length)]);
+  var c=document.getElementById('chip');
+  if(c){c.style.transform='scale(1.5) rotate(15deg)';setTimeout(function(){c.style.transform='';},350);}
+}
+function go(sec){
+  curSec=sec;
+  var ids=['menu','reading','math','history','ai','drawing','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  var target=document.getElementById(sec);
+  if(target)target.style.display='flex';
+  score=0;streak=0;
+  updScore();
+  if(sec==='reading')genR();
+  else if(sec==='math')genM();
+  else if(sec==='history')genH();
+  else if(sec==='ai')genA();
+  else if(sec==='drawing')initDraw();
+}
+function goHome(){
+  synth&&synth.cancel();
+  var ids=['menu','reading','math','history','ai','drawing','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  var m=document.getElementById('menu');
+  if(m){m.style.display='flex';}
+  var cards=document.querySelectorAll('.card');
+  for(var ci=0;ci<cards.length;ci++){
+    cards[ci].style.animation='none';
+    void cards[ci].offsetWidth;
+    cards[ci].style.animation='';
+  }
+}
+function updScore(){
+  var sv=document.getElementById('sv');
+  if(sv)sv.textContent=score;
+  var stk=document.getElementById('stk');
+  if(stk)stk.textContent=streak;
+}
+function flash(msg,good){
+  var fb=document.getElementById('fb');
+  if(!fb)return;
+  fb.textContent=msg;
+  fb.style.background=good?'rgba(56,175,85,0.92)':' rgba(211,47,47,0.92)';
+  fb.style.display='block';
+  clearTimeout(flash._t);
+  flash._t=setTimeout(function(){fb.style.display='none';},1400);
+}
+function addScore(n){
+  score+=n;streak++;
+  updScore();
+  if(streak===3)speakChipmunk('Three in a row! You are on fire!');
+  else if(streak===5)showDone();
+}
+function wrongAns(){
+  streak=0;
+  updScore();
+  flash('Oops! Try again! &#x1F914;',false);
+  speakChipmunk('Oops! Try again!');
+}
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
+}
+var SOUNDS=['A','E','I','O','U','B','C','D','F','G','H','J','K','L','M','N','P','R','S','T'];
+var VOWELS=['A says AH like Apple','E says EH like Egg','I says IH like Igloo','O says OH like Octopus','U says UH like Umbrella'];
+var WDS=[
+  {w:'CAT',img:'&#x1F408;'},
+  {w:'DOG',img:'&#x1F436;'},
+  {w:'SUN',img:'&#x2600;'},
+  {w:'BUS',img:'&#x1F68C;'},
+  {w:'HAT',img:'&#x1F9E2;'},
+  {w:'MAP',img:'&#x1F5FA;'},
+  {w:'JET',img:'&#x2708;'},
+  {w:'CUP',img:'&#x2615;'},
+  {w:'FAN',img:'&#x1F32C;'},
+  {w:'PIG',img:'&#x1F416;'},
+  {w:'FOX',img:'&#x1F98A;'},
+  {w:'OWL',img:'&#x1F989;'},
+  {w:'BEE',img:'&#x1F41D;'},
+  {w:'ANT',img:'&#x1F41C;'},
+  {w:'EGG',img:'&#x1F95A;'}
+];
+var SNTS=[
+  'The cat sat on the mat.',
+  'I can see the big red bus.',
+  'The sun is hot and bright.',
+  'I like my dog a lot.',
+  'She has a hat and a bag.',
+  'We can run and jump.',
+  'The frog sat on a log.',
+  'A bee can sting you.',
+  'My pet pig is pink.',
+  'The owl flies at night.'
+];
+var rIdx=0,rItems=[],rType='';
+function setR(type){
+  rType=type;
+  var map={sounds:'ls',vowels:'lv',words:'lw',sentences:'lx'};
+  var lvlEls=document.querySelectorAll('.lvl');
+  for(var i=0;i<lvlEls.length;i++)lvlEls[i].className='lvl';
+  var active=document.getElementById(map[type]);
+  if(active)active.className='lvl active';
+  if(type==='sounds')rItems=SOUNDS.slice();
+  else if(type==='vowels')rItems=VOWELS.slice();
+  else if(type==='words')rItems=WDS.slice();
+  else if(type==='sentences')rItems=SNTS.slice();
+  rItems=shuffle(rItems);rIdx=0;
+  genR();
+}
+function mkOptGroup(opts,correct,checkFn){
+  var og=document.createElement('div');
+  og.className='og';
+  for(var i=0;i<opts.length;i++){
+    (function(o,c){
+      var b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=o;
+      b.onclick=function(){if(b.disabled)return;checkFn(o===c||o.toLowerCase()===c.toLowerCase(),b);disableGroup(og);};
+      og.appendChild(b);
+    })(opts[i],correct);
+  }
+  return og;
+}
+function disableGroup(og){
+  var btns=og.querySelectorAll('.opt');
+  for(var i=0;i<btns.length;i++)btns[i].disabled=true;
+}
+function genR(){
+  var box=document.getElementById('rp');
+  if(!box)return;
+  box.style.animation='none';void box.offsetWidth;box.style.animation='';
+  if(rType===''){
+    box.innerHTML='<p style="font-size:17px;color:#555;text-align:center;padding:20px;">Choose a reading level above!</p>';
+    return;
+  }
+  if(rIdx>=rItems.length){rItems=shuffle(rItems);rIdx=0;}
+  var item=rItems[rIdx++];
+  box.innerHTML='';
+  var emojiMap={A:'&#x1F34E;',E:'&#x1F95A;',I:'&#x1F9CA;',O:'&#x1F419;',U:'&#x2602;'};
+  if(rType==='sounds'){
+    var correct=item;
+    var opts=shuffle(SOUNDS.filter(function(s){return s!==correct;})).slice(0,3).concat([correct]);
+    opts=shuffle(opts);
+    box.innerHTML+='<p style="font-size:15px;color:#555;">What letter makes this sound?</p>';
+    var bD=document.createElement('div');bD.style.cssText='font-size:60px;margin:6px 0;';bD.innerHTML=emojiMap[correct]||'&#x2728;';box.appendChild(bD);
+    var lD=document.createElement('p');lD.style.cssText='font-size:30px;font-weight:700;color:#333;margin:2px 0;';lD.textContent=correct;box.appendChild(lD);
+    box.appendChild(mkOptGroup(opts,correct,function(ok,btn){chkR(ok,btn);}));
+    speakChipmunk('What letter makes the '+correct+' sound?');
+  } else if(rType==='vowels'){
+    var parts=item.split(' says ');
+    var letter=parts[0];var rest=parts.length>1?parts[1]:'';
+    box.innerHTML+='<p style="font-size:15px;color:#555;">Listen and choose the vowel!</p>';
+    var eD=document.createElement('div');eD.style.cssText='font-size:58px;margin:6px 0;';eD.innerHTML=emojiMap[letter]||'&#x2B50;';box.appendChild(eD);
+    var rD=document.createElement('p');rD.style.cssText='font-size:17px;color:#666;margin:4px 0;';rD.textContent=rest;box.appendChild(rD);
+    var vOpts=shuffle(['A','E','I','O','U']);
+    box.appendChild(mkOptGroup(vOpts,letter,function(ok,btn){chkR(ok,btn);}));
+    speakChipmunk('Which vowel says '+rest+'?');
+  } else if(rType==='words'){
+    var correct2=item.w;
+    var allW=WDS.map(function(x){return x.w;});
+    var opts2=shuffle(allW.filter(function(s){return s!==correct2;})).slice(0,3).concat([correct2]);
+    opts2=shuffle(opts2);
+    box.innerHTML+='<p style="font-size:15px;color:#555;">What word does the picture show?</p>';
+    var iD=document.createElement('div');iD.style.cssText='font-size:64px;margin:6px 0;';iD.innerHTML=item.img;box.appendChild(iD);
+    box.appendChild(mkOptGroup(opts2,correct2,function(ok,btn){chkR(ok,btn);}));
+    speakChipmunk('What word does this picture show?');
+  } else if(rType==='sentences'){
+    var snt=item;
+    var words2=snt.split(' ');
+    var blankIdx=Math.floor(Math.random()*words2.length);
+    var answer=words2[blankIdx].replace(/[^a-zA-Z]/g,'');
+    var displayed=words2.slice();displayed[blankIdx]='____';
+    var allWw=WDS.map(function(x){return x.w.charAt(0)+x.w.slice(1).toLowerCase()});
+    var sOpts=shuffle(allWw.filter(function(w){return w.toLowerCase()!==answer.toLowerCase();})).slice(0,3);
+    sOpts.push(answer.charAt(0).toUpperCase()+answer.slice(1).toLowerCase());
+    sOpts=shuffle(sOpts);
+    box.innerHTML+='<p style="font-size:15px;color:#555;">Fill in the blank!</p>';
+    var snD=document.createElement('p');snD.style.cssText='font-size:19px;font-weight:700;color:#333;line-height:1.6;margin:8px 0;';snD.textContent=displayed.join(' ');box.appendChild(snD);
+    box.appendChild(mkOptGroup(sOpts,answer.charAt(0).toUpperCase()+answer.slice(1).toLowerCase(),function(ok,btn){chkR(ok,btn);}));
+    speakChipmunk('Fill in the blank: '+displayed.join(' '));
+  }
+}
+function chkR(ok,btn){
+  if(ok){
+    btn.className='opt correct';
+    flash('&#x2B50; Correct! Great job!',true);
+    speakChipmunk('Amazing! You got it!');
+    addScore(10);
+    setTimeout(genR,1300);
+  } else {
+    btn.className='opt wrong';
+    wrongAns();
+    setTimeout(function(){btn.className='opt';btn.disabled=false;},800);
+  }
+}
+var EMJS=['&#x1F600;','&#x1F602;','&#x1F60D;','&#x1F973;','&#x1F914;','&#x1F631;','&#x1F920;','&#x1F47B;'];
+var mLvl=1;
+function setM(t){mLvl=t;genM();}
+function genM(){
+  var box=document.getElementById('mp');
+  if(!box)return;
+  box.style.animation='none';void box.offsetWidth;box.style.animation='';
+  var a,b,ans;
+  var q=document.createElement('div');
+  if(mLvl===1){
+    a=Math.floor(Math.random()*5)+1;
+    b=Math.floor(Math.random()*5)+1;
+    ans=a+b;
+    var eA='';for(var i=0;i<a;i++)eA+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    var eB='';for(var j=0;j<b;j++)eB+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q.innerHTML='<p style="font-size:15px;color:#555;margin-bottom:6px;">How many in all?</p><div style="font-size:36px;letter-spacing:2px;margin:6px 0;">'+eA+' <b style="font-size:28px;color:#e91e63;">+</b> '+eB+'</div>';
+    speakChipmunk('How many in all? '+a+' plus '+b);
+  } else if(mLvl===2){
+    a=Math.floor(Math.random()*6)+2;
+    b=Math.floor(Math.random()*(a-1))+1;
+    ans=a-b;
+    var eT='';for(var k=0;k<a;k++)eT+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q.innerHTML='<p style="font-size:15px;color:#555;margin-bottom:6px;">How many are left?</p><div style="font-size:36px;letter-spacing:2px;margin:6px 0;">'+eT+'</div><p style="font-size:22px;color:#e91e63;font-weight:700;">Take away '+b+'</p>';
+    speakChipmunk('How many are left after taking away '+b+'?');
+  } else {
+    var shps=['&#x25CF;','&#x25A0;','&#x25B2;','&#x2605;','&#x2764;'];
+    var shIdx=Math.floor(Math.random()*shps.length);
+    var cnt=Math.floor(Math.random()*7)+3;
+    var sh='';
+    for(var m=0;m<cnt;m++)sh+=shps[shIdx];
+    ans=cnt;
+    q.innerHTML='<p style="font-size:15px;color:#555;margin-bottom:6px;">Count the shapes!</p><div style="font-size:38px;letter-spacing:4px;margin:6px 0;word-break:break-all;">'+sh+'</div>';
+    speakChipmunk('Count the shapes! How many?');
+  }
+  var wrong1=ans+1;
+  var wrong2=ans<=0?2:ans-1;
+  var wrong3=ans+2;
+  var mopts=shuffle([ans,wrong1,wrong2,wrong3]);
+  box.innerHTML='';
+  box.appendChild(q);
+  box.appendChild(mkOptGroup(mopts.map(String),String(ans),function(ok,btn){chkM(ok,btn);}));
+}
+function chkM(ok,btn){
+  if(ok){
+    btn.className='opt correct';
+    flash('&#x2B50; That\'s right!',true);
+    speakChipmunk('Correct! You are so smart!');
+    addScore(10);
+    setTimeout(genM,1300);
+  } else {
+    btn.className='opt wrong';
+    wrongAns();
+    setTimeout(function(){btn.className='opt';btn.disabled=false;},800);
+  }
+}
+var HST=[
+  {name:'Harriet Tubman',fact:'She helped hundreds of enslaved people escape to freedom through the Underground Railroad.',emoji:'&#x1F333;',q:'What did Harriet Tubman help people do?',opts:['Escape to freedom','Build houses','Bake cookies','Fly airplanes'],a:0},
+  {name:'Martin Luther King Jr.',fact:'He led peaceful marches so ALL people could be treated equally.',emoji:'&#x270A;&#x1F3FE;',q:'What did Dr. King believe in?',opts:['Equal rights for all','Only rich people matter','No school for kids','No music allowed'],a:0},
+  {name:'Rosa Parks',fact:'She bravely refused to give up her bus seat and helped change unfair laws.',emoji:'&#x1F68C;',q:'What was Rosa Parks famous for?',opts:['Refusing to give up her seat','Inventing the car','Painting a picture','Flying to the moon'],a:0},
+  {name:'Mae Jemison',fact:'She was the first Black woman to travel to space as an astronaut!',emoji:'&#x1F680;',q:'What did Mae Jemison do?',opts:['First Black woman in space','First person on Mars','Swam the ocean','Built the pyramids'],a:0},
+  {name:'Barack Obama',fact:'He became the 44th President of the USA - the first Black president!',emoji:'&#x1F1FA;&#x1F1F8;',q:'What was Barack Obama?',opts:['First Black US President','An astronaut','A famous chef','A soccer player'],a:0},
+  {name:'George Washington Carver',fact:'He invented over 300 products from peanuts - including peanut butter!',emoji:'&#x1F95C;',q:'What did George Washington Carver create from peanuts?',opts:['Over 300 products','Just one thing','Nothing at all','Ice cream only'],a:0},
+  {name:'Serena Williams',fact:'She became one of the greatest tennis players in the world!',emoji:'&#x1F3BE;',q:'What sport is Serena Williams famous for?',opts:['Tennis','Soccer','Swimming','Basketball'],a:0},
+  {name:'Bessie Coleman',fact:'She was the first Black woman to earn a pilot license and fly an airplane.',emoji:'&#x2708;&#xFE0F;',q:'What was Bessie Coleman the first to do?',opts:['First Black female pilot','First woman on the moon','First woman to swim','First woman in school'],a:0}
+];
+var hIdx=0,hList=[];
+function genH(){
+  var box=document.getElementById('hp');
+  if(!box)return;
+  box.style.animation='none';void box.offsetWidth;box.style.animation='';
+  if(hList.length===0){hList=shuffle(HST.slice());hIdx=0;}
+  if(hIdx>=hList.length){hList=shuffle(HST.slice());hIdx=0;}
+  var hero=hList[hIdx++];
+  box.innerHTML='';
+  var eD=document.createElement('div');eD.style.cssText='font-size:50px;margin-bottom:4px;';eD.innerHTML=hero.emoji;box.appendChild(eD);
+  var nD=document.createElement('p');nD.style.cssText='font-size:19px;font-weight:700;color:#1a1a2e;margin:3px 0;text-align:center;';nD.textContent=hero.name;box.appendChild(nD);
+  var fD=document.createElement('p');fD.style.cssText='font-size:14px;color:#555;margin:4px 10px 10px;text-align:center;line-height:1.5;';fD.textContent=hero.fact;box.appendChild(fD);
+  var qD=document.createElement('p');qD.style.cssText='font-size:16px;font-weight:600;color:#333;text-align:center;';qD.textContent=hero.q;box.appendChild(qD);
+  var ao=hero.opts.slice();
+  var hg=document.createElement('div');hg.className='og';
+  for(var hi=0;hi<ao.length;hi++){
+    (function(o,ci){
+      var bt=document.createElement('button');
+      bt.className='opt';
+      bt.style.cssText='font-size:13px;padding:11px 14px;';
+      bt.textContent=o;
+      bt.onclick=function(){if(bt.disabled)return;chkH(ci===hero.a,bt);var btns=hg.querySelectorAll('.opt');for(var x=0;x<btns.length;x++)btns[x].disabled=true;};
+      hg.appendChild(bt);
+    })(ao[hi],hi);
+  }
+  box.appendChild(hg);
+  speakChipmunk(hero.name+'. '+hero.fact);
+}
+function chkH(ok,btn){
+  if(ok){
+    btn.className='opt correct';
+    flash('&#x270A; Yes! Black History rocks!',true);
+    speakChipmunk('Wonderful! You learned about history!');
+    addScore(10);
+    setTimeout(genH,1700);
+  } else {
+    btn.className='opt wrong';
+    wrongAns();
+    setTimeout(function(){btn.className='opt';btn.disabled=false;},800);
+  }
+}
+var AID=[
+  {q:'What is Artificial Intelligence (AI)?',opts:['A smart computer program','A type of food','A sports game','A kind of plant'],a:0,explain:'AI is a smart computer program that can learn and help people!'},
+  {q:'Can AI help you learn new things?',opts:['Yes!','No!','Only sometimes','Never'],a:0,explain:'Yes! AI can help you read, do math, and learn so many things!'},
+  {q:'Who creates AI programs?',opts:['Smart programmers','Robots by themselves','Animals','The sun'],a:0,explain:'People called programmers write special instructions to create AI!'},
+  {q:'Is AI a helpful tool or something scary?',opts:['A helpful tool','Very scary','A monster','An alien'],a:0,explain:'AI is a helpful tool. People make sure it is safe!'},
+  {q:'Can AI draw pictures?',opts:['Yes, with special programs','No never','Only on paper','Only with a pencil'],a:0,explain:'Yes! There are AI programs that can help create pictures and art!'},
+  {q:'Does AI have feelings like you do?',opts:['No, AI does not have feelings','Yes, it gets sad','Yes, it gets hungry','Yes, it gets tired'],a:0,explain:'AI does not have feelings. Only people and animals have real feelings!'}
+];
+var aIdx=0,aList=[];
+function genA(){
+  var box=document.getElementById('ap');
+  if(!box)return;
+  box.style.animation='none';void box.offsetWidth;box.style.animation='';
+  if(aList.length===0){aList=shuffle(AID.slice());aIdx=0;}
+  if(aIdx>=aList.length){aList=shuffle(AID.slice());aIdx=0;}
+  var item=aList[aIdx++];
+  box.innerHTML='';
+  var rD=document.createElement('div');rD.style.cssText='font-size:50px;margin-bottom:8px;';rD.innerHTML='&#x1F916;';box.appendChild(rD);
+  var qD=document.createElement('p');qD.style.cssText='font-size:17px;font-weight:600;color:#333;margin:4px 10px;text-align:center;line-height:1.5;';qD.textContent=item.q;box.appendChild(qD);
+  var ag=document.createElement('div');ag.className='og';
+  for(var ai=0;ai<item.opts.length;ai++){
+    (function(o,ci){
+      var bt=document.createElement('button');
+      bt.className='opt';
+      bt.textContent=o;
+      bt.onclick=function(){if(bt.disabled)return;chkA(ci===item.a,bt,item.explain);var btns=ag.querySelectorAll('.opt');for(var x=0;x<btns.length;x++)btns[x].disabled=true;};
+      ag.appendChild(bt);
+    })(item.opts[ai],ai);
+  }
+  box.appendChild(ag);
+  speakChipmunk(item.q);
+}
+function chkA(ok,btn,explain){
+  if(ok){
+    btn.className='opt correct';
+    flash('&#x1F916; Correct! '+explain.substring(0,40)+'...',true);
+    speakChipmunk('Correct! '+explain);
+    addScore(10);
+    setTimeout(genA,2400);
+  } else {
+    btn.className='opt wrong';
+    wrongAns();
+    setTimeout(function(){btn.className='opt';btn.disabled=false;},800);
+  }
+}
+var DWDS=[
+  {w:'Apple',e:'&#x1F34E;'},
+  {w:'Sun',e:'&#x2600;'},
+  {w:'Tree',e:'&#x1F333;'},
+  {w:'House',e:'&#x1F3E0;'},
+  {w:'Star',e:'&#x2B50;'},
+  {w:'Fish',e:'&#x1F41F;'},
+  {w:'Moon',e:'&#x1F319;'},
+  {w:'Flower',e:'&#x1F338;'},
+  {w:'Heart',e:'&#x2764;'},
+  {w:'Cloud',e:'&#x2601;'}
+];
+var CLRS=['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e91e63','#795548','#000000','#ffffff','#aaaaaa'];
+var drawing=false,brushSize=8,curColor='#e74c3c',erasing=false,lastX=0,lastY=0;
+function initDraw(){
+  var pal=document.getElementById('pal');
+  if(!pal)return;
+  pal.innerHTML='';
+  for(var ci=0;ci<CLRS.length;ci++){
+    var d=document.createElement('div');
+    d.className='swatch';
+    d.style.background=CLRS[ci];
+    d.dataset.c=CLRS[ci];
+    d.addEventListener('click',pickColor);
+    pal.appendChild(d);
+  }
+  var bsz=document.getElementById('bsz');
+  if(bsz){
+    bsz.innerHTML='<span style="color:#fff;font-size:13px;margin-right:4px;">Brush:</span>';
+    var sizes=[4,8,14,20];
+    for(var bi=0;bi<sizes.length;bi++){
+      (function(sz){
+        var bt=document.createElement('button');
+        bt.className='dbtn';
+        bt.onclick=function(){brushSize=sz;var all=bsz.querySelectorAll('.dbtn');for(var x=0;x<all.length;x++)all[x].style.outline='';bt.style.outline='2px solid #fff';};
+        bt.style.cssText='width:'+(sz+16)+'px;height:'+(sz+16)+'px;border-radius:50%;background:#fff;border:2px solid #ccc;cursor:pointer;margin:2px;padding:0;';
+        bsz.appendChild(bt);
+      })(sizes[bi]);
+    }
+  }
+  var canvas=document.getElementById('canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||300;
+  canvas.height=210;
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  erasing=false;curColor='#e74c3c';brushSize=8;
+  var fs=pal.querySelector('.swatch');
+  if(fs)fs.style.outline='3px solid #000';
+  canvas.onmousedown=function(ev){drawing=true;var r=canvas.getBoundingClientRect();lastX=ev.clientX-r.left;lastY=ev.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.onmousemove=function(ev){if(!drawing)return;var r=canvas.getBoundingClientRect();var x=ev.clientX-r.left;var y=ev.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.onmouseup=function(){drawing=false;};
+  canvas.onmouseleave=function(){drawing=false;};
+  canvas.ontouchstart=function(ev){ev.preventDefault();drawing=true;var r=canvas.getBoundingClientRect();var t=ev.touches[0];lastX=t.clientX-r.left;lastY=t.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.ontouchmove=function(ev){ev.preventDefault();if(!drawing)return;var r=canvas.getBoundingClientRect();var t=ev.touches[0];var x=t.clientX-r.left;var y=t.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.ontouchend=function(){drawing=false;};
+  newWord();
+}
+function dot(ctx,x,y){
+  ctx.beginPath();ctx.arc(x,y,brushSize/2,0,Math.PI*2);
+  ctx.fillStyle=erasing?'#fff':curColor;ctx.fill();
+}
+function dline(ctx,x1,y1,x2,y2){
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+  ctx.strokeStyle=erasing?'#fff':curColor;
+  ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.stroke();
+}
+function pickColor(ev){
+  var el=ev.target||ev.currentTarget||ev;
+  curColor=el.dataset.c||curColor;
+  erasing=false;
+  var sw=document.querySelectorAll('.swatch');
+  for(var i=0;i<sw.length;i++)sw[i].style.outline='';
+  el.style.outline='3px solid #000';
+  var eb=document.getElementById('ebtn');
+  if(eb)eb.style.background='';
+}
+function toggleE(){
+  erasing=!erasing;
+  var btn=document.getElementById('ebtn');
+  if(btn)btn.style.background=erasing?'rgba(244,67,54,0.6)':' ';
+}
+function clearC(){
+  var canvas=document.getElementById('canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+function newWord(){
+  var dw=DWDS[Math.floor(Math.random()*DWDS.length)];
+  var dwe=document.getElementById('dw');
+  if(dwe)dwe.innerHTML=dw.w+' '+dw.e;
+  clearC();
+  speakChipmunk('Draw a '+dw.w+'!');
+}
+function sayWord(){
+  var dwe=document.getElementById('dw');
+  if(dwe){var txt=dwe.textContent.trim().split(' ')[0];speakChipmunk('Draw a '+txt+'!');}
+}
+function showDone(){
+  var ids=['menu','reading','math','history','ai','drawing','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  var done=document.getElementById('done');
+  if(done)done.style.display='flex';
+  var ds=document.getElementById('ds');
+  if(ds)ds.textContent=score;
+  var dstars=document.getElementById('dstars');
+  if(dstars){
+    dstars.innerHTML='';
+    var n=Math.min(streak,10);
+    for(var s=0;s<n;s++)dstars.innerHTML+='&#x2B50;';
+  }
+  confetti();
+  speakChipmunk('Amazing job! You scored '+score+' points! You are a superstar!');
+}
+function confetti(){
+  var colors=['#e74c3c','#f39c12','#2ecc71','#3498db','#9b59b6','#e91e63','#1abc9c','#ffd700'];
+  for(var i=0;i<50;i++){
+    (function(idx){
+      setTimeout(function(){
+        var d=document.createElement('div');
+        var isCircle=Math.random()>0.4;
+        d.style.cssText='position:fixed;pointer-events:none;z-index:9999;';
+        d.style.background=colors[idx%colors.length];
+        d.style.left=(Math.random()*100)+'vw';
+        d.style.top='-20px';
+        var sz=8+Math.random()*12;
+        d.style.width=sz+'px';
+        d.style.height=sz+'px';
+        d.style.borderRadius=isCircle?'50%':'3px';
+        d.style.opacity='1';
+        document.body.appendChild(d);
+        var startTime=null;
+        var speed=1.5+Math.random()*3;
+        var drift=(Math.random()-0.5)*3;
+        var spin=Math.random()*360;
+        function fall(ts){
+          if(!startTime)startTime=ts;
+          var progress=(ts-startTime)*0.04*speed;
+          d.style.top=progress+'vh';
+          d.style.left=(parseFloat(d.style.left)+drift)+'px';
+          d.style.transform='rotate('+(spin+progress*3)+'deg)';
+          d.style.opacity=String(Math.max(0,1-progress/100));
+          if(progress<120)requestAnimationFrame(fall);
+          else if(d.parentNode)d.parentNode.removeChild(d);
+        }
+        requestAnimationFrame(fall);
+      },idx*60);
+    })(i);
+  }
+}
+window.onload=function(){
+  var m=document.getElementById('menu');
+  if(m)m.style.display='flex';
+  setTimeout(function(){
+    speakChipmunk('Hi! I am Chipmunk! Tap a subject to start learning!');
+  },500);
+};
+</script>
+</body>
+</html>
