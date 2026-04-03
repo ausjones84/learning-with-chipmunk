@@ -171,28 +171,31 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
 
 <script>
 var score=0,streak=0,curSec='';
-var synth=window.speechSynthesis;
-function say(txt){
-  if(!synth)return;
-  synth.cancel();
-  var u=new SpeechSynthesisUtterance(txt);
-  u.rate=0.65;u.pitch=1.1;u.volume=1;
-  var voices=synth.getVoices();
-  var femaleVoice=voices.find(function(v){
-    var n=v.name.toLowerCase();
-    return n.includes('female')||n.includes('woman')||n.includes('samantha')||n.includes('victoria')||n.includes('karen')||n.includes('tessa')||n.includes('moira')||n.includes('fiona')||n.includes('zira')||n.includes('hazel')||n.includes('susan')||n.includes('linda');
-  });
-  if(!femaleVoice)femaleVoice=voices.find(function(v){return v.lang.startsWith('en');});
-  if(femaleVoice)u.voice=femaleVoice;
-  synth.speak(u);
+var XI_API_KEY='sk_c9b34e857eb24fddaf4695c0ecffd89be3c81d0a37ce6ebb';
+var XI_VOICE_ID='cgSgspJ2msm6clMCkdW9';
+var audioQueue=[];var audioPlaying=false;
+function playNextAudio(){
+  if(audioQueue.length===0){audioPlaying=false;return;}
+  audioPlaying=true;
+  var url=audioQueue.shift();
+  var audio=new Audio(url);
+  audio.onended=function(){URL.revokeObjectURL(url);playNextAudio();};
+  audio.onerror=function(){playNextAudio();};
+  audio.play().catch(function(){playNextAudio();});
 }
-function speakChipmunk(txt){
-  if(!synth)return;
-  synth.cancel();
-  var u=new SpeechSynthesisUtterance(txt);
-  u.rate=1.3;u.pitch=1.9;u.volume=1;
-  synth.speak(u);
+function elevenSpeak(txt,stability,style){
+  fetch('https://api.elevenlabs.io/v1/text-to-speech/'+XI_VOICE_ID+'/stream',{
+    method:'POST',
+    headers:{'xi-api-key':XI_API_KEY,'Content-Type':'application/json','Accept':'audio/mpeg'},
+    body:JSON.stringify({text:txt,model_id:'eleven_turbo_v2_5',voice_settings:{stability:stability||0.5,similarity_boost:0.75,style:style||0.0,use_speaker_boost:true}})
+  }).then(function(r){return r.blob();}).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    audioQueue.push(url);
+    if(!audioPlaying)playNextAudio();
+  }).catch(function(e){console.log('TTS error:',e);});
 }
+function say(txt){elevenSpeak(txt,0.55,0.0);}
+function speakChipmunk(txt){elevenSpeak(txt,0.35,0.6);}
 function chipClick(){
   var msgs=['Hi! I am Chipmunk! Keep learning!','You are SO smart!','Learning is super fun!','Tap a subject and let\'s go!','You are going to do amazing!','I believe in you!'];
   speakChipmunk(msgs[Math.floor(Math.random()*msgs.length)]);
