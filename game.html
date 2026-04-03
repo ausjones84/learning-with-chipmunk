@@ -219,33 +219,77 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
 var score=0,streak=0,curSec='',totalScore=0;
 var XI_API_KEY='sk_c9b34e857eb24fddaf4695c0ecffd89be3c81d0a37ce6ebb';
 var XI_VOICE_ID='cgSgspJ2msm6clMCkdW9';
-var audioQueue=[];var audioPlaying=false;
+var audioQueue=[];var audioPlaying=false;var currentAudio=null;
+var pendingFetches=[];var audioUnlocked=false;var pendingGreeting=true;
 var UNLOCKED={reading:{sounds:true,vowels:true,words:true,sentences:true,blends:false,comprehension:false,poetry:false},math:{1:true,2:true,3:true,4:false,5:false,6:false,7:false},hist:{1:true,2:false,3:false,4:false},ai:{1:true,2:false,3:false,4:false},draw:{1:true,2:false,3:false,4:false}};
 var ROUND_Q=5;
 
+function unlockAudioOnGesture(){
+  if(audioUnlocked)return;
+  audioUnlocked=true;
+  document.removeEventListener('click',unlockAudioOnGesture,true);
+  document.removeEventListener('touchstart',unlockAudioOnGesture,true);
+  if(pendingGreeting){
+    pendingGreeting=false;
+    speakChipmunk('Hi! I am Chipmunk! Tap a subject to start learning!');
+  }
+}
+document.addEventListener('click',unlockAudioOnGesture,true);
+document.addEventListener('touchstart',unlockAudioOnGesture,true);
+
 function playNextAudio(){
-  if(audioQueue.length===0){audioPlaying=false;return;}
+  if(audioQueue.length===0){audioPlaying=false;currentAudio=null;return;}
   audioPlaying=true;
   var url=audioQueue.shift();
   var audio=new Audio(url);
-  audio.onended=function(){URL.revokeObjectURL(url);playNextAudio();};
-  audio.onerror=function(){playNextAudio();};
-  audio.play().catch(function(){playNextAudio();});
+  currentAudio=audio;
+  audio.onended=function(){URL.revokeObjectURL(url);currentAudio=null;playNextAudio();};
+  audio.onerror=function(){URL.revokeObjectURL(url);currentAudio=null;playNextAudio();};
+  var playPromise=audio.play();
+  if(playPromise!==undefined){
+    playPromise.catch(function(e){
+      console.log('Audio play blocked:',e.name);
+      URL.revokeObjectURL(url);
+      currentAudio=null;
+      audioQueue=[];
+      audioPlaying=false;
+    });
+  }
 }
 function elevenSpeak(txt,stability,style){
+  if(!audioUnlocked)return;
+  var controller=new AbortController();
+  pendingFetches.push(controller);
   fetch('https://api.elevenlabs.io/v1/text-to-speech/'+XI_VOICE_ID+'/stream',{
     method:'POST',
     headers:{'xi-api-key':XI_API_KEY,'Content-Type':'application/json','Accept':'audio/mpeg'},
-    body:JSON.stringify({text:txt,model_id:'eleven_turbo_v2_5',voice_settings:{stability:stability||0.5,similarity_boost:0.75,style:style||0.0,use_speaker_boost:true}})
-  }).then(function(r){return r.blob();}).then(function(blob){
+    body:JSON.stringify({text:txt,model_id:'eleven_turbo_v2_5',voice_settings:{stability:stability||0.5,similarity_boost:0.75,style:style||0.0,use_speaker_boost:true}}),
+    signal:controller.signal
+  }).then(function(r){
+    if(!r.ok)throw new Error('TTS API error '+r.status);
+    return r.blob();
+  }).then(function(blob){
+    var idx=pendingFetches.indexOf(controller);
+    if(idx>-1)pendingFetches.splice(idx,1);
+    if(blob.size===0)return;
     var url=URL.createObjectURL(blob);
     audioQueue.push(url);
     if(!audioPlaying)playNextAudio();
-  }).catch(function(e){console.log('TTS error:',e);});
+  }).catch(function(e){
+    var idx=pendingFetches.indexOf(controller);
+    if(idx>-1)pendingFetches.splice(idx,1);
+    if(e.name!=='AbortError')console.log('TTS error:',e);
+  });
 }
 function say(txt){elevenSpeak(txt,0.55,0.0);}
 function speakChipmunk(txt){elevenSpeak(txt,0.35,0.6);}
-function stopAudio(){audioQueue=[];audioPlaying=false;}
+function stopAudio(){
+  pendingFetches.forEach(function(c){try{c.abort();}catch(e){}});
+  pendingFetches=[];
+  audioQueue=[];
+  if(currentAudio){try{currentAudio.pause();currentAudio.src='';}catch(e){}currentAudio=null;}
+  audioPlaying=false;
+}
 
 function chipClick(){
   var msgs=['Hi! I am Chipmunk! Keep learning!','You are SO smart!','Learning is super fun!','Tap a subject and lets go!','You are going to do amazing!','I believe in you!','Every day you get smarter!','You are a superstar learner!'];
@@ -1007,9 +1051,6 @@ function confetti(){
 window.onload=function(){
   var m=document.getElementById('menu');
   if(m)m.style.display='flex';
-  setTimeout(function(){
-    speakChipmunk('Hi! I am Chipmunk! Tap a subject to start learning!');
-  },500);
 };
 </script>
 </body>
