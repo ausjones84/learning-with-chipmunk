@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -75,7 +76,6 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
   <h1>Learning with Chipmunk!</h1>
   <div id="score-display">&#x2B50; <span id="sv">0</span></div>
 </div>
-
 <div id="menu" class="screen active">
   <h2 style="font-size:clamp(20px,5vw,36px);color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,.4);text-align:center;margin-bottom:8px">&#x1F31F; What do you want to learn today? &#x1F31F;</h2>
   <div class="menu-grid">
@@ -98,12 +98,10 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
       <div id="lx" class="lvl-btn" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setR('sentences')">&#x1F4D6; Sentences</div>
     </div>
     <div class="progress-wrap"><div class="progress-fill" id="rp" style="width:0"></div></div>
-    <div id="rc"></div>
-    <div class="choices" id="rch"></div>
+    <div id="rc"></div><div class="choices" id="rch"></div>
     <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button><span style="font-size:14px;color:#666">Tap to hear!</span></div>
   </div>
 </div>
-
 <div id="math" class="screen">
   <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
@@ -115,34 +113,28 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
       <div id="msh" class="lvl-btn" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6" onclick="setM('shapes')">&#x1F537; Shapes</div>
     </div>
     <div class="progress-wrap"><div class="progress-fill" id="mp" style="width:0"></div></div>
-    <div id="mc2"></div>
-    <div class="choices" id="mch"></div>
+    <div id="mc2"></div><div class="choices" id="mch"></div>
     <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
-
 <div id="history" class="screen">
   <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
     <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#e67e22">&#x270A;&#x1F3FE; Black History Heroes!</div>
     <div class="progress-wrap"><div class="progress-fill" id="hp" style="width:0"></div></div>
-    <div id="hc"></div>
-    <div class="choices" id="hch"></div>
+    <div id="hc"></div><div class="choices" id="hch"></div>
     <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
-
 <div id="ai" class="screen">
   <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card">
     <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#9B59B6">&#x1F916; What is Artificial Intelligence?</div>
     <div class="progress-wrap"><div class="progress-fill" id="ap" style="width:0"></div></div>
-    <div id="ac"></div>
-    <div class="choices" id="ach"></div>
+    <div id="ac"></div><div class="choices" id="ach"></div>
     <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
   </div>
 </div>
-
 <div id="drawing" class="screen">
   <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
   <div class="card" style="padding:14px">
@@ -160,10 +152,9 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
     <p style="text-align:center;margin-top:8px;font-size:13px;color:#888">Use your finger or mouse to draw!</p>
   </div>
 </div>
-
 <div id="done">
   <div class="done-card">
-    <div style="font-size:80px;animation:bounce 1s infinite;display:block;margin:0 auto 16px;text-align:center">&#x1F389;</div>
+    <div style="font-size:80px;animation:bounce 1s infinite;text-align:center;margin-bottom:16px">&#x1F389;</div>
     <div class="done-title">Amazing Job!</div>
     <p style="font-size:16px;color:#666;margin-bottom:8px">You scored</p>
     <div class="done-score" id="ds">0</div>
@@ -171,425 +162,558 @@ body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradi
     <div id="dstars" style="display:flex;justify-content:center;gap:4px;margin:8px 0;font-size:28px"></div>
     <button class="again-btn" onclick="goHome()">&#x1F3E0; Play Again!</button>
   </div>
-</div>
+      </div>
 <script>
-var score=0,curSpeak='',rLvl='sounds',mLvl='counting',qCount=0,TQ=8;
-var syn=window.speechSynthesis,voc=[];
-syn.onvoiceschanged=function(){voc=syn.getVoices();};
-setTimeout(function(){voc=syn.getVoices();},600);
-
-function say(t,r,p){
-  r=r||0.85;p=p||1.4;syn.cancel();
-  var u=new SpeechSynthesisUtterance(t);
-  var v=voc.find(function(x){return x.name.indexOf('Samantha')>-1||x.lang==='en-US';});
-  if(v)u.voice=v;u.rate=r;u.pitch=p;u.volume=1;syn.speak(u);
+var score=0,streak=0,lvl=1,curSec='';
+var synth=window.speechSynthesis;
+function say(txt){
+  if(!synth)return;
+  synth.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.rate=0.85;u.pitch=1.4;u.volume=1;
+  synth.speak(u);
 }
-
-function speakChipmunk(){
-  var m=['Hi friend! I am Chipmunk! Lets learn together!','You are so smart! Keep going!','Wow, you are doing amazing!','Learning is so much fun!','I believe in you!','Great job! You are a superstar!'];
-  say(m[Math.floor(Math.random()*m.length)],0.9,1.6);
-  var e=document.getElementById('chipmunk');
-  e.style.transform='scale(1.5) rotate(15deg)';
-  setTimeout(function(){e.style.transform='';},600);
+function speakChipmunk(txt){
+  if(!synth)return;
+  synth.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.rate=1.35;u.pitch=2.0;u.volume=1;
+  synth.speak(u);
 }
-function speakCur(){if(curSpeak)say(curSpeak);}
-
-function go(name){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  document.getElementById('menu').classList.remove('active');
-  document.getElementById(name).classList.add('active');
-  qCount=0;
-  if(name==='reading'){rLvl='sounds';upRLvl();genR();}
-  else if(name==='math'){mLvl='counting';upMLvl();genM();}
-  else if(name==='history'){hOrd=[];genH();}
-  else if(name==='ai'){genA();}
-  else if(name==='drawing'){initDraw();}
+function go(sec){
+  curSec=sec;
+  var ids=['home','read','math','hist','ai','draw','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  var target=document.getElementById(sec);
+  if(target)target.style.display='flex';
+  score=0;streak=0;lvl=1;
+  document.getElementById('score').textContent='0';
+  if(sec==='read')genR();
+  else if(sec==='math')genM();
+  else if(sec==='hist')genH();
+  else if(sec==='ai')genA();
+  else if(sec==='draw')initDraw();
 }
-
 function goHome(){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  var d=document.getElementById('done');d.classList.remove('active');d.style.display='none';
-  document.getElementById('menu').classList.add('active');
-  say('Welcome back! What do you want to learn today?',0.9,1.5);
+  synth&&synth.cancel();
+  var ids=['home','read','math','hist','ai','draw','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  document.getElementById('home').style.display='flex';
 }
-
-function fb(ok){
-  var el=document.getElementById('feedback');
-  el.textContent=ok?['&#x2B50;','&#x1F31F;','&#x2728;','&#x1F389;','&#x1F3C6;'][Math.floor(Math.random()*5)]:'&#x1F4AA;';
-  el.classList.add('show');
-  if(ok)confetti();
-  setTimeout(function(){el.classList.remove('show');},1000);
+function addScore(n){
+  score+=n;streak++;
+  document.getElementById('score').textContent=score;
+  if(streak%5===0)showDone();
 }
-
-function addSc(n){
-  score+=n;document.getElementById('sv').textContent=score;
-  var el=document.getElementById('score-display');
-  el.style.transform='scale(1.3)';setTimeout(function(){el.style.transform='';},300);
+function wrongAns(){
+  streak=0;
+  speakChipmunk('Oops! Try again!');
+  var bts=document.querySelectorAll('.opt');
+  for(var i=0;i<bts.length;i++){bts[i].style.background='';}
 }
-
-function prog(id,v){document.getElementById(id).style.width=v+'%';}
-
-function shuf(a){
-  var r=a.slice();
-  for(var i=r.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=r[i];r[i]=r[j];r[j]=t;}
-  return r;
+function shuffle(arr){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+  return a;
 }
-
-var SND=[
-  ['A','Ah',1],['B','Buh',0],['C','Kuh',0],['D','Duh',0],['E','Eh',1],
-  ['F','Fff',0],['G','Guh',0],['H','Huh',0],['I','Ih',1],['J','Juh',0],
-  ['K','Kuh',0],['L','Lll',0],['M','Mmm',0],['N','Nnn',0],['O','Oh',1],
-  ['P','Puh',0],['R','Rrr',0],['S','Sss',0],['T','Tuh',0],['U','Uh',1],
-  ['V','Vvv',0],['W','Wuh',0],['Y','Yuh',0],['Z','Zzz',0]
-];
-var VWL=['A','E','I','O','U'];
+var SOUNDS=['A','E','I','O','U','B','C','D','F','G','H','J','K','L','M','N','P','R','S','T'];
+var VOWELS=['A says AH like Apple','E says EH like Egg','I says IH like Igloo','O says OH like Octopus','U says UH like Umbrella'];
 var WDS=[
-  ['cat','&#x1F431;'],['dog','&#x1F436;'],['sun','&#x2600;&#xFE0F;'],['hat','&#x1F3A9;'],
-  ['big','&#x1F418;'],['cup','&#x1F964;'],['bed','&#x1F6CF;&#xFE0F;'],['fox','&#x1F98A;'],
-  ['bug','&#x1F41B;'],['hop','&#x1F438;'],['run','&#x1F3C3;'],['sit','&#x1FA91;'],
-  ['red','&#x1F534;'],['fun','&#x1F389;'],['map','&#x1F5FA;&#xFE0F;'],['log','&#x1FAB5;']
+  {w:'CAT',img:'&#x1F408;'},
+  {w:'DOG',img:'&#x1F436;'},
+  {w:'SUN',img:'&#x2600;'},
+  {w:'BUS',img:'&#x1F68C;'},
+  {w:'HAT',img:'&#x1F9E2;'},
+  {w:'MAP',img:'&#x1F5FA;'},
+  {w:'JET',img:'&#x2708;'},
+  {w:'CUP',img:'&#x2615;'},
+  {w:'FAN',img:'&#x1F32C;'},
+  {w:'PIG',img:'&#x1F416;'},
+  {w:'FOX',img:'&#x1F98A;'},
+  {w:'OWL',img:'&#x1F989;'},
+  {w:'BEE',img:'&#x1F41D;'},
+  {w:'ANT',img:'&#x1F41C;'},
+  {w:'EGG',img:'&#x1F95A;'}
 ];
 var SNTS=[
-  ['The cat sat on the mat.','Where did the cat sit?',['on the mat','in the box','on the tree','by the lake'],'on the mat'],
-  ['The dog ran in the park.','Where did the dog run?',['in the park','at school','in the house','at the beach'],'in the park'],
-  ['The sun is big and hot.','What is the sun like?',['big and hot','small and cold','blue and round','soft and fluffy'],'big and hot'],
-  ['I love to read books.','What does the person love?',['to read books','to eat cake','to play games','to sleep'],'to read books'],
-  ['The bird has pretty wings.','What does the bird have?',['pretty wings','sharp claws','a big hat','red shoes'],'pretty wings'],
-  ['We play outside in the rain.','When do we play outside?',['in the rain','at night','after dinner','in winter'],'in the rain']
+  'The cat sat on the mat.',
+  'I can see the big red bus.',
+  'The sun is hot and bright.',
+  'I like my dog a lot.',
+  'She has a hat and a bag.',
+  'We can run and jump.',
+  'The frog sat on a log.',
+  'A bee can sting you.',
+  'My pet pig is pink.',
+  'The owl flies at night.'
 ];
-
-function setR(lv){rLvl=lv;qCount=0;upRLvl();genR();}
-
-function upRLvl(){
-  var map={sounds:'ls',vowels:'lv',words:'lw',sentences:'lx'};
-  var colors={sounds:'#d63384',vowels:'#0d6efd',words:'#198754',sentences:'#fd7e14'};
-  ['sounds','vowels','words','sentences'].forEach(function(l){
-    var el=document.getElementById(map[l]);
-    if(!el)return;
-    if(l===rLvl){el.style.background=colors[l];el.style.color='#fff';}
-    else{el.style.background='';el.style.color=colors[l];}
-  });
+var rIdx=0,rItems=[],rType='';
+function setR(type){
+  rType=type;
+  if(type==='sounds'){rItems=SOUNDS.slice();}
+  else if(type==='vowels'){rItems=VOWELS.slice();}
+  else if(type==='words'){rItems=WDS.slice();}
+  else if(type==='sentences'){rItems=SNTS.slice();}
+  rItems=shuffle(rItems);
+  rIdx=0;
+  genR();
 }
-
-function btn(v,c,txt){
-  return '<button class="choice-btn" onclick="chk(this)" data-v="'+v+'" data-c="'+c+'">'+txt+'</button>';
-}
-
+function upRLvl(){lvl++;}
 function genR(){
-  var con=document.getElementById('rc');
-  var cho=document.getElementById('rch');
-  qCount++;prog('rp',Math.min((qCount/TQ)*100,100));
-
-  if(rLvl==='sounds'){
-    var item=SND[Math.floor(Math.random()*SND.length)];
-    var cls=item[2]?'vowel-style':'cons-style';
-    var badge=item[2]?'(This is a Vowel! &#x2B50;)':'(This is a Consonant!)';
-    con.innerHTML='<div class="question-box"><div class="question-sub">What sound does this letter make?</div><div class="big-letter"><span class="'+cls+'">'+item[0]+'</span></div><div class="question-sub">'+badge+'</div></div>';
-    curSpeak='The letter '+item[0]+' makes the '+item[1]+' sound.';
-    say('What sound does the letter '+item[0]+' make?',0.8,1.4);
-    var wrong=shuf(SND.filter(function(s){return s[0]!==item[0];})).slice(0,3);
-    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return btn(o[1],item[1],o[1]);}).join('');
-
-  }else if(rLvl==='vowels'){
-    var cons='BCDFGHJKLMNPQRSTVWXYZ'.split('');
-    var isV=Math.random()>0.4;
-    var letter=isV?VWL[Math.floor(Math.random()*VWL.length)]:cons[Math.floor(Math.random()*cons.length)];
-    var correct=VWL.indexOf(letter)>-1?'Vowel!':'Consonant!';
-    con.innerHTML='<div class="question-box"><div class="question-sub">Is this letter a Vowel or Consonant?</div><div class="big-letter"><span style="color:white">'+letter+'</span></div><div class="question-sub">Vowels: A, E, I, O, U &#x2B50;</div></div>';
-    curSpeak='Is the letter '+letter+' a vowel or a consonant?';
-    say(curSpeak,0.85,1.4);
-    cho.innerHTML=btn('Vowel!',correct,'&#x2B50; Vowel!')+btn('Consonant!',correct,'Consonant!');
-
-  }else if(rLvl==='words'){
-    var item=WDS[Math.floor(Math.random()*WDS.length)];
-    var wrong=shuf(WDS.filter(function(w){return w[0]!==item[0];})).slice(0,3);
-    con.innerHTML='<div class="question-box"><div class="question-sub">Which word matches this picture?</div><div class="big-letter">'+item[1]+'</div></div>';
-    curSpeak=item[0];
-    say('Which word matches this picture? '+item[0],0.8,1.4);
-    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return btn(o[0],item[0],o[0]);}).join('');
-
-  }else{
-    var item=SNTS[Math.floor(Math.random()*SNTS.length)];
-    con.innerHTML='<div class="question-box"><div class="sentence-style" style="color:white">'+item[0]+'</div><div class="question-sub" style="margin-top:12px">'+item[1]+'</div></div>';
-    curSpeak=item[0]+' '+item[1];
-    say(item[0],0.8,1.4);
-    cho.innerHTML=shuf(item[2].slice()).map(function(o){return btn(o,item[3],o);}).join('');
+  var box=document.getElementById('rbox');
+  if(!box)return;
+  if(rType===''){
+    box.innerHTML='<p style="font-size:20px;color:#555;text-align:center;padding:20px;">Choose a reading level below!</p>';
+    return;
   }
-}
-
-function chkR(btn,v,c){
-  document.querySelectorAll('#rch .choice-btn').forEach(function(b){b.onclick=null;});
-  if(v===c){btn.classList.add('correct');addSc(2);fb(true);say('Great job! That is correct!',0.9,1.6);}
-  else{btn.classList.add('wrong');document.querySelectorAll('#rch .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
-  setTimeout(function(){if(qCount<TQ)genR();else showDone();},1800);
-}
-var SHP=[
-  ['Circle','&#x2B55;','has no corners and is perfectly round!'],
-  ['Square','&#x1F7E5;','has 4 equal sides and 4 corners!'],
-  ['Triangle','&#x1F53A;','has 3 sides and 3 corners!'],
-  ['Rectangle','&#x1F7E6;','has 4 sides, 2 long and 2 short!'],
-  ['Star','&#x2B50;','has 5 beautiful points!'],
-  ['Diamond','&#x1F537;','has 4 sides like a tilted square!'],
-  ['Oval','&#x1F95A;','looks like a stretched circle!'],
-  ['Heart','&#x2764;&#xFE0F;','is the beautiful shape of love!']
-];
-var EMJS=['&#x1F34E;','&#x2B50;','&#x1F436;','&#x1F353;','&#x1F388;','&#x1F98B;','&#x1F33B;','&#x1F438;','&#x1F355;','&#x1F3AA;'];
-
-function setM(lv){mLvl=lv;qCount=0;upMLvl();genM();}
-
-function upMLvl(){
-  var ids={counting:'mc',addition:'ma',subtraction:'ms',shapes:'msh'};
-  var colors={counting:'#fd7e14',addition:'#198754',subtraction:'#0d6efd',shapes:'#9B59B6'};
-  ['counting','addition','subtraction','shapes'].forEach(function(l){
-    var el=document.getElementById(ids[l]);
-    if(!el)return;
-    if(l===mLvl){el.style.background=colors[l];el.style.color='#fff';}
-    else{el.style.background='';el.style.color=colors[l];}
-  });
-}
-
-function mbtn(v,c,t){
-  return '<button class="choice-btn" onclick="chk(this)" data-v="'+v+'" data-c="'+c+'" data-ctx="math">'+t+'</button>';
-}
-
-function nbtn(num,ans){
-  return '<button class="choice-btn" onclick="chk(this)" data-v="'+num+'" data-c="'+ans+'" data-ctx="math">'+num+'</button>';
-}
-
-function nrow(ans){
-  var set=[ans],tries=0;
-  while(set.length<4&&tries<60){tries++;var n=ans+Math.floor(Math.random()*7)-3;if(n>=0&&n<=20&&set.indexOf(n)<0)set.push(n);}
-  return shuf(set).map(function(n){return nbtn(n,ans);}).join('');
-}
-
-function genM(){
-  var con=document.getElementById('mc2');
-  var cho=document.getElementById('mch');
-  qCount++;prog('mp',Math.min((qCount/TQ)*100,100));
-
-  if(mLvl==='counting'){
-    var num=Math.floor(Math.random()*9)+1;
-    var em=EMJS[Math.floor(Math.random()*EMJS.length)];
-    var disp='';for(var i=0;i<num;i++)disp+=em+' ';
-    con.innerHTML='<div class="question-box"><div class="question-sub">How many do you see?</div><div class="math-emojis">'+disp+'</div></div>';
-    curSpeak='How many do you see? Count them!';
-    say('How many do you see? Count them!',0.8,1.4);
-    cho.innerHTML=nrow(num);
-
-  }else if(mLvl==='addition'){
-    var a=Math.floor(Math.random()*6)+1,b=Math.floor(Math.random()*6)+1,ans=a+b;
-    var em=EMJS[Math.floor(Math.random()*EMJS.length)];
-    var da='',db='';for(var i=0;i<a;i++)da+=em+' ';for(var i=0;i<b;i++)db+=em+' ';
-    con.innerHTML='<div class="question-box"><div class="math-emojis">'+da+' + '+db+'</div><div class="math-big" style="color:white">'+a+' + '+b+' = ?</div></div>';
-    curSpeak=a+' plus '+b+' equals what?';
-    say(a+' plus '+b+' equals what?',0.85,1.4);
-    cho.innerHTML=nrow(ans);
-
-  }else if(mLvl==='subtraction'){
-    var a=Math.floor(Math.random()*8)+3,b=Math.floor(Math.random()*(a-1))+1,ans=a-b;
-    con.innerHTML='<div class="question-box"><div class="math-big" style="color:white">'+a+' - '+b+' = ?</div><div class="question-sub">Take away '+b+' from '+a+'</div></div>';
-    curSpeak=a+' minus '+b+' equals what?';
-    say(a+' minus '+b+' equals what?',0.85,1.4);
-    cho.innerHTML=nrow(ans);
-
-  }else{
-    var item=SHP[Math.floor(Math.random()*SHP.length)];
-    con.innerHTML='<div class="question-box"><div class="question-sub">What shape is this?</div><div class="big-letter">'+item[1]+'</div></div>';
-    curSpeak='This shape is a '+item[0]+'. It '+item[2];
-    say('What shape is this?',0.85,1.4);
-    var wrong=shuf(SHP.filter(function(s){return s[0]!==item[0];})).slice(0,3);
-    cho.innerHTML=shuf([item].concat(wrong)).map(function(o){return mbtn(o[0],item[0],o[0]);}).join('');
-  }
-}
-
-function chkM(btn,v,c){
-  document.querySelectorAll('#mch .choice-btn').forEach(function(b){b.onclick=null;});
-  if(String(v)===String(c)){btn.classList.add('correct');addSc(2);fb(true);say('Excellent! You got it right!',0.9,1.6);}
-  else{btn.classList.add('wrong');document.querySelectorAll('#mch .choice-btn').forEach(function(b){if(b.dataset.v===String(c))b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
-  setTimeout(function(){if(qCount<TQ)genM();else showDone();},1800);
+  if(rIdx>=rItems.length){rItems=shuffle(rItems);rIdx=0;}
+  var item=rItems[rIdx++];
+  if(rType==='sounds'){
+    var correct=item;
+    var opts=shuffle(SOUNDS.filter(function(s){return s!==correct;})).slice(0,3);
+    opts.push(correct);
+    opts=shuffle(opts);
+    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">What letter makes this sound?</p>'+
+      '<div style="font-size:72px;margin:10px 0;">'+(correct==='A'?'&#x1F34E;':correct==='E'?'&#x1F95A;':correct==='I'?'&#x1F9CA;':correct==='O'?'&#x1F419;':correct==='U'?'&#x2602;':'&#x2728;')+'</div>'+
+      '<p style="font-size:36px;font-weight:700;color:#333;margin:4px 0;">'+correct+'</p>';
+    var og=document.createElement('div');
+    og.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+    for(var i=0;i<opts.length;i++){
+      (function(o,c){
+        var b=document.createElement('button');
+        b.className='opt';
+        b.textContent=o;
+        b.onclick=function(){chkR(o===c,this);};
+        og.appendChild(b);
+      })(opts[i],correct);
     }
-var HST=[
-  ['Harriet Tubman','&#x1F469;&#x1F3FE;','Harriet Tubman was a very brave woman who helped hundreds of people escape slavery through secret paths called the Underground Railroad. She was called Moses because she led her people to freedom!','What was Harriet Tubman known for?',['Helping people to freedom','Building a rocket','Painting pictures','Writing songs'],'Helping people to freedom'],
-  ['Martin Luther King Jr.','&#x1F468;&#x1F3FE;','Dr. Martin Luther King Jr. was a peaceful leader who gave amazing speeches about fairness. His famous speech was I Have a Dream. He wanted everyone to be treated the same no matter what!','What did Dr. King dream about?',['Everyone being treated fairly','Flying to the moon','Eating ice cream','Building big buildings'],'Everyone being treated fairly'],
-  ['Rosa Parks','&#x1F469;&#x1F3FE;','Rosa Parks was a brave woman who refused to give up her seat on a bus. She helped start a big movement for equal rights. She is called the mother of the freedom movement!','What did Rosa Parks refuse to do?',['Give up her bus seat','Go to school','Eat vegetables','Read a book'],'Give up her bus seat'],
-  ['Barack Obama','&#x1F468;&#x1F3FE;','Barack Obama became the first Black President of the United States in 2009! He worked very hard and went to great schools. He showed the world that you can achieve anything you dream of!','What did Barack Obama become first?',['First Black President','First astronaut','First teacher','First doctor'],'First Black President'],
-  ['Mae Jemison','&#x1F469;&#x1F3FE;&#x200D;&#x1F680;','Mae Jemison was the first Black woman to travel to space! She was a doctor AND an astronaut. She blasted off into space in 1992 and proved that girls can do absolutely anything!','What was Mae Jemison the first to do?',['Black woman in space','Run a marathon','Build a bridge','Teach at school'],'Black woman in space'],
-  ['George Washington Carver','&#x1F468;&#x1F3FE;&#x200D;&#x1F52C;','George Washington Carver was an amazing scientist who discovered over 300 ways to use peanuts! He helped farmers grow better food and created many inventions. He loved plants and science!','What did George Washington Carver discover?',['300 uses for peanuts','How to fly a plane','A new planet','Making music'],'300 uses for peanuts'],
-  ['Serena Williams','&#x1F3BE;','Serena Williams is one of the greatest tennis players ever! She won 23 Grand Slam titles and showed the world that hard work can make your dreams come true. She is a true champion!','What sport made Serena Williams famous?',['Tennis','Soccer','Basketball','Swimming'],'Tennis'],
-  ['Misty Copeland','&#x1FA70;','Misty Copeland became the first Black woman to be a principal dancer at the American Ballet Theatre. She started ballet at age 13 and worked very hard to become a world-famous ballerina!','What art is Misty Copeland famous for?',['Ballet dancing','Painting','Singing','Cooking'],'Ballet dancing']
-];
-var hOrd=[];
-
-function genH(){
-  if(!hOrd.length)hOrd=shuf([0,1,2,3,4,5,6,7]);
-  var con=document.getElementById('hc');
-  var cho=document.getElementById('hch');
-  qCount++;prog('hp',Math.min((qCount/TQ)*100,100));
-  var item=HST[hOrd[(qCount-1)%HST.length]];
-  curSpeak=item[2];
-  con.innerHTML='<div class="question-box"><div class="hero-icon">'+item[1]+'</div><div class="hero-name">'+item[0]+'</div></div><div class="card" style="margin-top:8px"><div class="hero-fact">'+item[2]+'</div></div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#764ba2">'+item[3]+'</div>';
-  say(item[0]+'. '+item[2],0.8,1.3);
-  cho.innerHTML=shuf(item[4].slice()).map(function(o){return '<button class="choice-btn" onclick="chk(this)" data-v="'+o+'" data-c="'+item[5]+'" data-ctx="history">'+o+'</button>';}).join('');
-}
-
-function chkH(btn,v,c){
-  document.querySelectorAll('#hch .choice-btn').forEach(function(b){b.onclick=null;});
-  if(v===c){btn.classList.add('correct');addSc(3);fb(true);say('Wonderful! You know your history! You are so smart!',0.9,1.5);}
-  else{btn.classList.add('wrong');document.querySelectorAll('#hch .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
-  setTimeout(function(){if(qCount<TQ)genH();else showDone();},2200);
-}
-
-var AID=[
-  ['What is AI?','&#x1F916;','AI stands for Artificial Intelligence! It means teaching computers to think and learn, just like how YOU learn at school. AI helps computers see pictures, understand words, and answer questions!','What does AI stand for?',['Artificial Intelligence','Amazing Ideas','Animal Island','Art and Imagination'],'Artificial Intelligence'],
-  ['How does AI learn?','&#x1F4DA;','AI learns by looking at LOTS and LOTS of examples. Just like you learned the alphabet by practicing over and over, AI learns by studying millions of pictures, words, and sounds!','How does AI learn?',['From lots of examples','By going to school','By watching TV','By sleeping'],'From lots of examples'],
-  ['AI can see pictures!','&#x1F441;&#xFE0F;','AI can look at a picture and tell you what is in it! If you show AI a picture of a dog, it says That is a dog! This is called Image Recognition. Is that not cool?','What can AI do with pictures?',['Recognize what is in them','Eat them up','Draw them bigger','Print them out'],'Recognize what is in them'],
-  ['AI talks to us!','&#x1F4AC;','Some AI can understand your words and talk back to you! Voice assistants use AI. When you ask them a question, AI helps understand what you said and finds an answer for you!','What do voice assistants use?',['Artificial Intelligence','Magic spells','Invisible friends','Telephone wires'],'Artificial Intelligence'],
-  ['AI in games!','&#x1F3AE;','AI is in many video games! When you play alone, the characters you play against are controlled by AI. The AI helps them make smart decisions, like where to move next!','What does AI control in video games?',['Game characters','The screen','The music','The controller'],'Game characters'],
-  ['AI helps doctors!','&#x1F3E5;','AI can help doctors look at X-rays to check if someone is sick. It is like a super helper that looks very carefully at pictures. AI helps make sure people get the right care!','How does AI help doctors?',['By looking at X-rays','By giving medicine','By cooking food','By driving cars'],'By looking at X-rays'],
-  ['Be smart with AI!','&#x1F6E1;&#xFE0F;','AI is a helpful tool like a pencil or calculator. But it can make mistakes, so always have a grown-up help you use it. Never share your name, address, or phone number with any AI!','What should you do with AI?',['Have a grown-up help you','Use it all alone','Share all your info','Trust everything it says'],'Have a grown-up help you'],
-  ['You could build AI!','&#x1F31F;','You could grow up to be an AI scientist! People who build AI are called engineers. If you love math, science, and solving puzzles, you might build amazing AI robots and programs one day!','What could you become if you build AI?',['An engineer or scientist','A chef','A pilot','A firefighter'],'An engineer or scientist']
-];
-
-function genA(){
-  var con=document.getElementById('ac');
-  var cho=document.getElementById('ach');
-  qCount++;prog('ap',Math.min((qCount/AID.length)*100,100));
-  var item=AID[(qCount-1)%AID.length];
-  curSpeak=item[2];
-  con.innerHTML='<div class="question-box"><div class="hero-icon">'+item[1]+'</div><div class="hero-name">'+item[0]+'</div></div><div class="ai-box">'+item[2]+'</div><div style="text-align:center;margin:8px 0;font-size:16px;font-weight:700;color:#9B59B6">'+item[3]+'</div>';
-  say(item[0]+'. '+item[2],0.8,1.3);
-  cho.innerHTML=shuf(item[4].slice()).map(function(o){return '<button class="choice-btn" onclick="chk(this)" data-v="'+o+'" data-c="'+item[5]+'" data-ctx="ai">'+o+'</button>';}).join('');
-}
-
-function chkA(btn,v,c){
-  document.querySelectorAll('#ach .choice-btn').forEach(function(b){b.onclick=null;});
-  if(v===c){btn.classList.add('correct');addSc(3);fb(true);say('Amazing! You are so smart about technology!',0.9,1.5);}
-  else{btn.classList.add('wrong');document.querySelectorAll('#ach .choice-btn').forEach(function(b){if(b.dataset.v===c)b.classList.add('correct');});say('Good try! The answer is '+c,0.9,1.4);fb(false);}
-  setTimeout(function(){if(qCount<AID.length)genA();else showDone();},2000);
-}
-
-function chk(b){
-  var v=b.dataset.v,c=b.dataset.c,ctx=b.dataset.ctx;
-  var pfx=ctx==='history'?'h':ctx==='ai'?'a':ctx==='math'?'m':'r';
-  if(pfx==='r')chkR(b,v,c);
-  else if(pfx==='m')chkM(b,v,c);
-  else if(pfx==='h')chkH(b,v,c);
-  else chkA(b,v,c);
+    box.appendChild(og);
+    speakChipmunk('What letter makes the '+correct+' sound?');
+  } else if(rType==='vowels'){
+    var parts=item.split(' says ');
+    var letter=parts[0];
+    var rest=parts.length>1?parts[1]:'';
+    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">Listen and choose the vowel!</p>'+
+      '<div style="font-size:64px;margin:10px 0;">'+(letter==='A'?'&#x1F34E;':letter==='E'?'&#x1F95A;':letter==='I'?'&#x1F9CA;':letter==='O'?'&#x1F419;':'&#x2602;')+'</div>'+
+      '<p style="font-size:20px;color:#555;margin:4px 0;">'+rest+'</p>';
+    var vOpts=shuffle(['A','E','I','O','U']);
+    var vg=document.createElement('div');
+    vg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+    for(var vi=0;vi<vOpts.length;vi++){
+      (function(o,c){
+        var b=document.createElement('button');
+        b.className='opt';
+        b.textContent=o;
+        b.onclick=function(){chkR(o===c,this);};
+        vg.appendChild(b);
+      })(vOpts[vi],letter);
+    }
+    box.appendChild(vg);
+    speakChipmunk('Which vowel says '+rest+'?');
+  } else if(rType==='words'){
+    var correct2=item.w;
+    var allW=WDS.map(function(x){return x.w;});
+    var opts2=shuffle(allW.filter(function(s){return s!==correct2;})).slice(0,3);
+    opts2.push(correct2);
+    opts2=shuffle(opts2);
+    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">What word does the picture show?</p>'+
+      '<div style="font-size:72px;margin:10px 0;">'+item.img+'</div>';
+    var wg=document.createElement('div');
+    wg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+    for(var wi=0;wi<opts2.length;wi++){
+      (function(o,c){
+        var b=document.createElement('button');
+        b.className='opt';
+        b.textContent=o;
+        b.onclick=function(){chkR(o===c,this);};
+        wg.appendChild(b);
+      })(opts2[wi],correct2);
+    }
+    box.appendChild(wg);
+    speakChipmunk('What word does this picture show?');
+  } else if(rType==='sentences'){
+    var snt=item;
+    var words2=snt.split(' ');
+    var blankIdx=Math.floor(Math.random()*words2.length);
+    var answer=words2[blankIdx].replace(/[^a-zA-Z]/g,'');
+    var displayed=words2.slice();
+    displayed[blankIdx]='____';
+    var allWw=WDS.map(function(x){return x.w.charAt(0).toUpperCase()+x.w.slice(1).toLowerCase()});
+    var distract=shuffle(allWw.filter(function(w){return w.toLowerCase()!==answer.toLowerCase();})).slice(0,3);
+    var sOpts=shuffle(distract.concat([answer.charAt(0).toUpperCase()+answer.slice(1).toLowerCase()]));
+    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">Fill in the blank!</p>'+
+      '<p style="font-size:22px;font-weight:700;color:#333;line-height:1.5;margin:10px 0;">'+displayed.join(' ')+'</p>';
+    var sg=document.createElement('div');
+    sg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+    for(var si=0;si<sOpts.length;si++){
+      (function(o,c){
+        var b=document.createElement('button');
+        b.className='opt';
+        b.textContent=o;
+        b.onclick=function(){chkR(o.toLowerCase()===c.toLowerCase(),this);};
+        sg.appendChild(b);
+      })(sOpts[si],answer);
+    }
+    box.appendChild(sg);
+    speakChipmunk('Fill in the blank: '+displayed.join(' '));
   }
-var DWDS=['a cat &#x1F431;','a dog &#x1F436;','the sun &#x2600;&#xFE0F;','a house &#x1F3E0;','a tree &#x1F333;','a flower &#x1F338;','a star &#x2B50;','a heart &#x2764;&#xFE0F;','a bird &#x1F426;','a fish &#x1F41F;','a rainbow &#x1F308;','a cloud &#x2601;&#xFE0F;','a robot &#x1F916;','a rocket &#x1F680;','a book &#x1F4DA;','your family &#x1F46A;'];
-var CLRS=['#000000','#e53935','#FF8C42','#FFD93D','#6BCB77','#4ECDC4','#2196F3','#9B59B6','#FF6B9D','#795548','#FFFFFF'];
-var cCol='#000000',cBr=6,drw=false,ersr=false,lx=0,ly=0,dv,dx;
-
+}
+function chkR(ok,btn){
+  if(ok){
+    btn.style.background='#4CAF50';
+    btn.style.color='#fff';
+    speakChipmunk('Amazing! You got it!');
+    addScore(10);
+    setTimeout(genR,1200);
+  } else {
+    btn.style.background='#f44336';
+    btn.style.color='#fff';
+    wrongAns();
+    setTimeout(function(){btn.style.background='';btn.style.color='';},800);
+  }
+}
+var SHP=['&#x25CF;','&#x25A0;','&#x25B2;','&#x2605;','&#x2764;'];
+var SHPN=['circle','square','triangle','star','heart'];
+var EMJS=['&#x1F600;','&#x1F602;','&#x1F60D;','&#x1F92E;','&#x1F973;','&#x1F914;','&#x1F631;','&#x1F920;'];
+var mQ=null,mA=0,mLvl=1;
+function setM(t){
+  mLvl=t;
+  genM();
+}
+function genM(){
+  var box=document.getElementById('mbox');
+  if(!box)return;
+  var a,b,ans,q;
+  if(mLvl===1){
+    a=Math.floor(Math.random()*5)+1;
+    b=Math.floor(Math.random()*5)+1;
+    ans=a+b;
+    var eA='';
+    for(var i=0;i<a;i++)eA+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    var eB='';
+    for(var j=0;j<b;j++)eB+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">How many in all?</p>'+
+      '<div style="font-size:40px;letter-spacing:2px;margin:8px 0;">'+eA+' + '+eB+'</div>';
+    mA=ans;
+  } else if(mLvl===2){
+    a=Math.floor(Math.random()*6)+2;
+    b=Math.floor(Math.random()*(a-1))+1;
+    ans=a-b;
+    var eT='';
+    for(var k=0;k<a;k++)eT+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">How many are left?</p>'+
+      '<div style="font-size:40px;letter-spacing:2px;margin:8px 0;">'+eT+'</div>'+
+      '<p style="font-size:26px;color:#e91e63;font-weight:700;">Take away '+b+'</p>';
+    mA=ans;
+  } else {
+    var shapes=[];
+    var shIdx=Math.floor(Math.random()*SHP.length);
+    var cnt=Math.floor(Math.random()*7)+3;
+    for(var m=0;m<cnt;m++)shapes.push(SHP[shIdx]);
+    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">Count the shapes!</p>'+
+      '<div style="font-size:44px;letter-spacing:4px;margin:8px 0;">'+shapes.join('')+'</div>';
+    mA=cnt;
+  }
+  mQ=q;
+  var wrong1,wrong2,wrong3;
+  wrong1=ans+1;wrong2=ans===0?2:ans-1;wrong3=ans+2;
+  var mopts=shuffle([ans,wrong1,wrong2,wrong3]);
+  box.innerHTML=q+'<div id="mbtn" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;"></div>';
+  var mg=document.getElementById('mbtn');
+  for(var mi=0;mi<mopts.length;mi++){
+    (function(o,c){
+      var b=document.createElement('button');
+      b.className='opt';
+      b.textContent=o;
+      b.onclick=function(){chkM(o===c,this);};
+      mg.appendChild(b);
+    })(mopts[mi],ans);
+  }
+  speakChipmunk(mLvl===3?'Count the shapes! How many are there?':(mLvl===2?'How many are left after taking away '+b+'?':('How many in all? '+a+' plus '+b)));
+}
+function chkM(ok,btn){
+  if(ok){
+    btn.style.background='#4CAF50';
+    btn.style.color='#fff';
+    speakChipmunk('Correct! You are so smart!');
+    addScore(10);
+    setTimeout(genM,1200);
+  } else {
+    btn.style.background='#f44336';
+    btn.style.color='#fff';
+    wrongAns();
+    setTimeout(function(){btn.style.background='';btn.style.color='';},800);
+  }
+}
+var HST=[
+  {name:'Harriet Tubman',fact:'She helped hundreds of slaves escape to freedom on the Underground Railroad.',emoji:'&#x1F333;',q:'What did Harriet Tubman help people do?',opts:['Escape to freedom','Build houses','Bake cookies','Fly airplanes'],a:0},
+  {name:'Martin Luther King Jr.',fact:'He led peaceful marches so ALL people could be treated equally.',emoji:'&#x270A;',q:'What did Dr. King believe in?',opts:['Equal rights for all','Only rich people matter','No school for kids','No music allowed'],a:0},
+  {name:'Rosa Parks',fact:'She bravely refused to give up her bus seat and helped change unfair laws.',emoji:'&#x1F68C;',q:'What was Rosa Parks famous for?',opts:['Refusing to give up her bus seat','Inventing the car','Painting a picture','Flying to the moon'],a:0},
+  {name:'Mae Jemison',fact:'She was the first Black woman to travel to space as an astronaut!',emoji:'&#x1F680;',q:'What did Mae Jemison do?',opts:['First Black woman in space','First person on Mars','Swam the ocean','Built the pyramids'],a:0},
+  {name:'Barack Obama',fact:'He became the 44th President of the United States - the first Black president!',emoji:'&#x1F1FA;&#x1F1F8;',q:'What was Barack Obama?',opts:['First Black US President','An astronaut','A chef','A soccer player'],a:0},
+  {name:'George Washington Carver',fact:'He invented over 300 products from peanuts - including peanut butter!',emoji:'&#x1F95C;',q:'What did George Washington Carver invent from peanuts?',opts:['Over 300 products','Just one thing','Nothing at all','Ice cream only'],a:0},
+  {name:'Serena Williams',fact:'She became one of the greatest tennis players in the world!',emoji:'&#x1F3BE;',q:'What sport is Serena Williams famous for?',opts:['Tennis','Soccer','Swimming','Basketball'],a:0},
+  {name:'Bessie Coleman',fact:'She was the first Black woman to become a licensed airplane pilot.',emoji:'&#x2708;',q:'What was Bessie Coleman the first to do?',opts:['First Black female pilot','First woman on the moon','First woman to swim','First woman in school'],a:0}
+];
+var hIdx=0,hList=[];
+function genH(){
+  var box=document.getElementById('hbox');
+  if(!box)return;
+  if(hList.length===0){hList=shuffle(HST.slice());hIdx=0;}
+  if(hIdx>=hList.length){hList=shuffle(HST.slice());hIdx=0;}
+  var hero=hList[hIdx++];
+  var ao=hero.opts.slice();
+  box.innerHTML=
+    '<div style="font-size:56px;margin-bottom:6px;">'+hero.emoji+'</div>'+
+    '<p style="font-size:22px;font-weight:700;color:#2c3e50;margin:4px 0;">'+hero.name+'</p>'+
+    '<p style="font-size:16px;color:#555;margin:6px 10px 14px;">'+hero.fact+'</p>'+
+    '<p style="font-size:18px;font-weight:600;color:#333;">'+hero.q+'</p>';
+  var hg=document.createElement('div');
+  hg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+  for(var hi=0;hi<ao.length;hi++){
+    (function(o,ci){
+      var b=document.createElement('button');
+      b.className='opt';
+      b.style.cssText='font-size:14px;padding:10px 16px;';
+      b.textContent=o;
+      b.onclick=function(){chkH(ci===hero.a,this);};
+      hg.appendChild(b);
+    })(ao[hi],hi);
+  }
+  box.appendChild(hg);
+  speakChipmunk(hero.name+'. '+hero.fact+' '+hero.q);
+}
+function chkH(ok,btn){
+  if(ok){
+    btn.style.background='#4CAF50';
+    btn.style.color='#fff';
+    speakChipmunk('Wonderful! You learned about history!');
+    addScore(10);
+    setTimeout(genH,1500);
+  } else {
+    btn.style.background='#f44336';
+    btn.style.color='#fff';
+    wrongAns();
+    setTimeout(function(){btn.style.background='';btn.style.color='';},800);
+  }
+}
+var AID=[
+  {q:'What is Artificial Intelligence (AI)?',opts:['A smart computer program','A type of food','A sports game','A kind of plant'],a:0,explain:'AI is a smart computer program that can learn and help people!'},
+  {q:'Can AI help you learn new things?',opts:['Yes!','No!','Only sometimes','Never'],a:0,explain:'Yes! AI can help you read, do math, and learn many things!'},
+  {q:'Who creates AI programs?',opts:['Smart programmers','Robots by themselves','Animals','The sun'],a:0,explain:'People called programmers write special instructions to create AI!'},
+  {q:'Is AI your friend or something to be afraid of?',opts:['A helpful tool','Very scary','A monster','An alien'],a:0,explain:'AI is a helpful tool. People make sure it is safe and helpful!'},
+  {q:'Can AI draw pictures?',opts:['Yes, with special programs','No never','Only on paper','Only with a pencil'],a:0,explain:'Yes! There are AI programs that can help create pictures and art!'},
+  {q:'Does AI have feelings like you do?',opts:['No, AI does not have feelings','Yes, it gets sad','Yes, it gets hungry','Yes, it gets tired'],a:0,explain:'AI does not have feelings. Only people and animals have real feelings!'}
+];
+var aIdx=0,aList=[];
+function genA(){
+  var box=document.getElementById('abox');
+  if(!box)return;
+  if(aList.length===0){aList=shuffle(AID.slice());aIdx=0;}
+  if(aIdx>=aList.length){aList=shuffle(AID.slice());aIdx=0;}
+  var item=aList[aIdx++];
+  box.innerHTML=
+    '<div style="font-size:56px;margin-bottom:8px;">&#x1F916;</div>'+
+    '<p style="font-size:20px;font-weight:600;color:#333;margin:6px 10px;">'+item.q+'</p>';
+  var ag=document.createElement('div');
+  ag.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;';
+  for(var ai=0;ai<item.opts.length;ai++){
+    (function(o,ci){
+      var b=document.createElement('button');
+      b.className='opt';
+      b.textContent=o;
+      b.onclick=function(){chkA(ci===item.a,this,item.explain);};
+      ag.appendChild(b);
+    })(item.opts[ai],ai);
+  }
+  box.appendChild(ag);
+  speakChipmunk(item.q);
+}
+function chkA(ok,btn,explain){
+  if(ok){
+    btn.style.background='#4CAF50';
+    btn.style.color='#fff';
+    speakChipmunk('Correct! '+explain);
+    addScore(10);
+    setTimeout(genA,2000);
+  } else {
+    btn.style.background='#f44336';
+    btn.style.color='#fff';
+    wrongAns();
+    setTimeout(function(){btn.style.background='';btn.style.color='';},800);
+  }
+}
+function chk(ok,btn,explain){
+  explain?chkA(ok,btn,explain):chkR(ok,btn);
+}
+var DWDS=[
+  {w:'Apple',e:'&#x1F34E;'},
+  {w:'Sun',e:'&#x2600;'},
+  {w:'Tree',e:'&#x1F333;'},
+  {w:'House',e:'&#x1F3E0;'},
+  {w:'Star',e:'&#x2B50;'},
+  {w:'Fish',e:'&#x1F41F;'},
+  {w:'Moon',e:'&#x1F319;'},
+  {w:'Flower',e:'&#x1F338;'},
+  {w:'Heart',e:'&#x2764;'},
+  {w:'Cloud',e:'&#x2601;'}
+];
+var CLRS=[
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e91e63','#795548','#000000','#ffffff','#aaaaaa'
+];
+var drawing=false,brushSize=8,curColor='#e74c3c',erasing=false;
+var lastX=0,lastY=0;
 function initDraw(){
-  dv=document.getElementById('canvas');
-  dx=dv.getContext('2d');
-  var mw=Math.min(window.innerWidth-48,620);
-  dv.width=mw;dv.height=Math.round(mw*0.55);
-  dx.fillStyle='#FAFAFA';dx.fillRect(0,0,dv.width,dv.height);
-  dx.lineCap='round';dx.lineJoin='round';
-
   var pal=document.getElementById('pal');
-  pal.innerHTML=CLRS.map(function(c){
-    var act=c===cCol?' active':'';
-    var bdr=c==='#FFFFFF'?'border-color:#ccc':'border-color:'+c;
-    return '<div class="swatch'+act+'" style="background:'+c+';'+bdr+'" onclick="pickColor(this,''+c+'')" data-c="'+c+'"></div>';
-  }).join('');
-
+  if(!pal)return;
+  pal.innerHTML='';
+  for(var ci=0;ci<CLRS.length;ci++){
+    var d=document.createElement('div');
+    d.className='swatch';
+    d.style.background=CLRS[ci];
+    d.dataset.c=CLRS[ci];
+    d.onclick=pickColor;
+    pal.appendChild(d);
+  }
   var bsz=document.getElementById('bsz');
-  bsz.innerHTML='<span style="font-size:13px;color:#666">Size:</span>'+[3,6,12,20].map(function(s){
-    var act=s===cBr?' active':'';
-    return '<button class="bbtn'+act+'" onclick="pickBrush(this,'+s+')" data-s="'+s+'"><div style="width:'+s+'px;height:'+s+'px;background:#333;border-radius:50%"></div></button>';
-  }).join('');
-
-  dv.onmousedown=function(e){drw=true;lx=e.offsetX;ly=e.offsetY;dot(lx,ly);};
-  dv.onmousemove=function(e){if(drw)dline(e.offsetX,e.offsetY);};
-  dv.onmouseup=function(){drw=false;};
-  dv.onmouseleave=function(){drw=false;};
-  dv.ontouchstart=function(e){
-    e.preventDefault();
-    var r=dv.getBoundingClientRect(),t=e.touches[0];
-    drw=true;lx=t.clientX-r.left;ly=t.clientY-r.top;dot(lx,ly);
-  };
-  dv.ontouchmove=function(e){
-    e.preventDefault();
-    if(!drw)return;
-    var r=dv.getBoundingClientRect(),t=e.touches[0];
-    dline(t.clientX-r.left,t.clientY-r.top);
-  };
-  dv.ontouchend=function(){drw=false;};
+  if(bsz){
+    bsz.innerHTML='';
+    var sizes=[4,8,14,20];
+    for(var bi=0;bi<sizes.length;bi++){
+      (function(sz){
+        var b=document.createElement('button');
+        b.className='dbtn';
+        b.onclick=function(){pickBrush(sz);};
+        b.style.cssText='width:'+(sz+10)+'px;height:'+(sz+10)+'px;border-radius:50%;background:#333;border:2px solid #666;cursor:pointer;margin:2px;';
+        bsz.appendChild(b);
+      })(sizes[bi]);
+    }
+  }
+  var canvas=document.getElementById('canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||300;
+  canvas.height=canvas.offsetHeight||220;
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  erasing=false;
+  curColor='#e74c3c';
+  brushSize=8;
+  var firstSwatch=pal.querySelector('.swatch');
+  if(firstSwatch)firstSwatch.style.outline='3px solid #000';
+  canvas.onmousedown=function(e){drawing=true;var r=canvas.getBoundingClientRect();lastX=e.clientX-r.left;lastY=e.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.onmousemove=function(e){if(!drawing)return;var r=canvas.getBoundingClientRect();var x=e.clientX-r.left;var y=e.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.onmouseup=function(){drawing=false;};
+  canvas.onmouseleave=function(){drawing=false;};
+  canvas.ontouchstart=function(e){e.preventDefault();drawing=true;var r=canvas.getBoundingClientRect();var t=e.touches[0];lastX=t.clientX-r.left;lastY=t.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.ontouchmove=function(e){e.preventDefault();if(!drawing)return;var r=canvas.getBoundingClientRect();var t=e.touches[0];var x=t.clientX-r.left;var y=t.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.ontouchend=function(){drawing=false;};
   newWord();
 }
-
-function dot(x,y){dx.beginPath();dx.arc(x,y,ersr?15:cBr/2,0,Math.PI*2);dx.fillStyle=ersr?'#FAFAFA':cCol;dx.fill();}
-function dline(x,y){dx.beginPath();dx.moveTo(lx,ly);dx.lineTo(x,y);dx.strokeStyle=ersr?'#FAFAFA':cCol;dx.lineWidth=ersr?30:cBr;dx.stroke();lx=x;ly=y;}
-
-function pickColor(el,c){
-  cCol=c;ersr=false;
-  document.querySelectorAll('.swatch').forEach(function(s){s.classList.toggle('active',s.dataset.c===c);});
-  var eb=document.getElementById('ebtn');
-  eb.style.borderColor='#888';eb.style.color='#555';eb.textContent='&#x2B1C; Eraser';
+function dot(ctx,x,y){
+  ctx.beginPath();
+  ctx.arc(x,y,brushSize/2,0,Math.PI*2);
+  ctx.fillStyle=erasing?'#fff':curColor;
+  ctx.fill();
 }
-
-function pickBrush(el,s){
-  cBr=s;
-  document.querySelectorAll('.bbtn').forEach(function(b){b.classList.toggle('active',parseInt(b.dataset.s)===s);});
+function dline(ctx,x1,y1,x2,y2){
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.strokeStyle=erasing?'#fff':curColor;
+  ctx.lineWidth=brushSize;
+  ctx.lineCap='round';
+  ctx.stroke();
 }
-
+function pickColor(el){
+  var e=el.target||el;
+  curColor=e.dataset.c||curColor;
+  erasing=false;
+  var swatches=document.querySelectorAll('.swatch');
+  for(var i=0;i<swatches.length;i++)swatches[i].style.outline='';
+  e.style.outline='3px solid #000';
+}
+function pickBrush(sz){brushSize=sz;}
 function toggleE(){
-  ersr=!ersr;
-  var eb=document.getElementById('ebtn');
-  eb.style.borderColor=ersr?'#e53935':'#888';
-  eb.style.color=ersr?'#e53935':'#555';
-  eb.innerHTML=ersr?'&#x270F;&#xFE0F; Draw':'&#x2B1C; Eraser';
+  erasing=!erasing;
+  var btn=document.getElementById('ebtn');
+  if(btn)btn.style.background=erasing?'#f44336':'';
 }
-
-function clearC(){if(dx){dx.fillStyle='#FAFAFA';dx.fillRect(0,0,dv.width,dv.height);}}
-
+function clearC(){
+  var canvas=document.getElementById('canvas');
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
 function newWord(){
-  var w=DWDS[Math.floor(Math.random()*DWDS.length)];
-  document.getElementById('dw').innerHTML=w;
-  say('Draw '+w.replace(/&#x[0-9A-F]+;/gi,''),0.9,1.5);
+  var dw=DWDS[Math.floor(Math.random()*DWDS.length)];
+  var dwe=document.getElementById('dw');
+  if(dwe)dwe.innerHTML=dw.w+' '+dw.e;
+  clearC();
+  speakChipmunk('Draw a '+dw.w+'!');
 }
-
 function sayWord(){
-  var w=document.getElementById('dw').textContent||document.getElementById('dw').innerText;
-  say('Draw '+w,0.9,1.5);
+  var dwe=document.getElementById('dw');
+  if(dwe){var txt=dwe.textContent.trim().split(' ')[0];speakChipmunk('Draw a '+txt+'!');}
 }
-
 function showDone(){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
-  var d=document.getElementById('done');d.style.display='flex';d.classList.add('active');
-  document.getElementById('ds').textContent=score;
-  var n=Math.min(Math.ceil(score/4),10);
-  var h='';for(var i=0;i<n;i++)h+='<span>&#x2B50;</span>';
-  document.getElementById('dstars').innerHTML=h;
-  var msg=score>20?'You are absolutely AMAZING!':score>10?'Great job!':'You are learning so much!';
-  say('You finished! '+msg+' You scored '+score+' stars!',0.9,1.5);
+  var ids=['home','read','math','hist','ai','draw','done'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
+    if(el)el.style.display='none';
+  }
+  document.getElementById('done').style.display='flex';
+  document.getElementById('ds').textContent=score+' '+starStr(streak);
   confetti();
-  setTimeout(confetti,800);
-  setTimeout(confetti,1600);
+  speakChipmunk('Amazing job! You scored '+score+' points! You are a superstar!');
 }
-
+function starStr(n){
+  var s='';
+  for(var i=0;i<Math.min(n,10);i++)s+='&#x2B50;';
+  return s;
+}
 function confetti(){
-  var cols=['#FF6B9D','#FFD93D','#6BCB77','#4ECDC4','#9B59B6','#FF8C42'];
-  for(var i=0;i<20;i++){
-    var el=document.createElement('div');
-    el.className='confetti';
-    el.style.left=Math.floor(Math.random()*100)+'%';
-    el.style.background=cols[Math.floor(Math.random()*cols.length)];
-    el.style.animationDelay=(Math.random()*1.5).toFixed(2)+'s';
-    el.style.animationDuration=(1.5+Math.random()*2).toFixed(2)+'s';
-    el.style.transform='rotate('+Math.floor(Math.random()*360)+'deg)';
-    document.body.appendChild(el);
-    (function(x){setTimeout(function(){if(x.parentNode)x.parentNode.removeChild(x);},4000);})(el);
+  var c=document.getElementById('done');
+  if(!c)return;
+  var colors=['#e74c3c','#f39c12','#2ecc71','#3498db','#9b59b6','#e91e63','#1abc9c'];
+  for(var i=0;i<40;i++){
+    (function(idx){
+      setTimeout(function(){
+        var d=document.createElement('div');
+        d.style.cssText='position:fixed;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:9999;';
+        d.style.background=colors[idx%colors.length];
+        d.style.left=(Math.random()*100)+'vw';
+        d.style.top='-20px';
+        c.appendChild(d);
+        var start=null;
+        var speed=2+Math.random()*3;
+        var drift=(Math.random()-0.5)*2;
+        function fall(ts){
+          if(!start)start=ts;
+          var progress=(ts-start)*0.05*speed;
+          d.style.top=progress+'vh';
+          d.style.left=(parseFloat(d.style.left)+drift)+'px';
+          if(progress<120)requestAnimationFrame(fall);
+          else if(d.parentNode)d.parentNode.removeChild(d);
+        }
+        requestAnimationFrame(fall);
+      },idx*80);
+    })(i);
   }
 }
-
 window.onload=function(){
-  voc=syn.getVoices();
-  setTimeout(function(){
-    say('Hi! I am Chipmunk! Welcome to Learning with Chipmunk! Tap a subject to start learning!',0.85,1.5);
-  },600);
+  document.getElementById('home').style.display='flex';
+  speakChipmunk('Hi! I am Chipmunk! Let us learn together! Tap a subject to start!');
 };
 </script>
 </body>
