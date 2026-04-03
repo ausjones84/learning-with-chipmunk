@@ -414,7 +414,7 @@ function setR(type){
   score=0;streak=0;roundQ=0;roundCorrect=0;updScore();
   var badge=document.getElementById('reading-level-badge');
   var lvlNames={sounds:'Letter Sounds',vowels:'Vowels',words:'Sight Words',sentences:'Fill-in Sentences',blends:'Consonant Blends',comprehension:'Reading Comprehension',poetry:'Poetry'};
-  if(badge)badge.textContent='&#x1F31F; '+lvlNames[type];
+  if(badge)badge.innerHTML='&#x1F31F; '+lvlNames[type];
   genR();
 }
 
@@ -540,7 +540,7 @@ function setM(t){
   score=0;streak=0;roundQ=0;roundCorrect=0;updScore();
   var names=['Counting','Adding','Subtracting','Multiplying','Dividing','Fractions','Word Problems'];
   var badge=document.getElementById('math-level-badge');
-  if(badge)badge.textContent='&#x1F31F; Level '+t+' - '+names[t-1];
+  if(badge)badge.innerHTML='&#x1F31F; Level '+t+' - '+names[t-1];
   genM();
 }
 function genM(){
@@ -666,7 +666,7 @@ function setHL(lv){
   var active=document.getElementById('hL'+lv);if(active&&!active.classList.contains('locked'))active.className='lvl active';
   var badge=document.getElementById('hist-level-badge');
   var names=['Famous Heroes','Deeper Stories','Amazing Facts','Historical Events'];
-  if(badge)badge.textContent='&#x1F31F; Level '+lv+' - '+names[lv-1];
+  if(badge)badge.innerHTML='&#x1F31F; Level '+lv+' - '+names[lv-1];
   score=0;streak=0;roundQ=0;roundCorrect=0;updScore();
   hList=[];hIdx=0;genH();
 }
@@ -754,7 +754,7 @@ function setAL(lv){
   var active=document.getElementById('aL'+lv);if(active&&!active.classList.contains('locked'))active.className='lvl active';
   var names=['Basics','How AI Works','AI Uses','AI Ethics'];
   var badge=document.getElementById('ai-level-badge');
-  if(badge)badge.textContent='&#x1F31F; Level '+lv+' - '+names[lv-1];
+  if(badge)badge.innerHTML='&#x1F31F; Level '+lv+' - '+names[lv-1];
   score=0;streak=0;roundQ=0;roundCorrect=0;updScore();
   aList=[];aIdx=0;genA();
 }
@@ -809,7 +809,7 @@ function setDL(lv){
   var active=document.getElementById('dL'+lv);if(active&&!active.classList.contains('locked'))active.className='lvl active';
   var names=['Simple Objects','Medium Challenge','Advanced Scenes','Complete Scene Stories'];
   var badge=document.getElementById('draw-level-badge');
-  if(badge)badge.textContent='&#x1F31F; Level '+lv+' - '+names[lv-1];
+  if(badge)badge.innerHTML='&#x1F31F; Level '+lv+' - '+names[lv-1];
   var pools=[DWDS_L1,DWDS_L2,DWDS_L3,DWDS_L4];
   curDWDS=pools[lv-1];
   newWord();
