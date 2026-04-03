@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,164 +6,163 @@
 <title>Learning with Chipmunk!</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;overflow-x:hidden}
+body{font-family:'Comic Sans MS','Chalkboard SE',cursive;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;flex-direction:column}
 @keyframes rainbow{0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes fall{0%{top:-10px;opacity:1}100%{top:110vh;opacity:0}}
 @keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
-#header{background:linear-gradient(90deg,#FF6B9D,#FFD93D,#6BCB77,#4ECDC4,#9B59B6);background-size:400% 400%;animation:rainbow 4s ease infinite;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 15px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
-#header h1{font-size:clamp(16px,4vw,24px);color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,.4)}
-#score-display{background:#fff;border-radius:20px;padding:6px 14px;font-size:clamp(12px,3vw,16px);font-weight:700;color:#764ba2}
-#chipmunk{font-size:clamp(28px,6vw,48px);animation:bounce 1s infinite;cursor:pointer;transition:transform .3s}
-.screen{display:none;flex-direction:column;align-items:center;padding:16px;min-height:calc(100vh - 70px)}
-.screen.active{display:flex}
-.card{background:rgba(255,255,255,.95);border-radius:24px;padding:20px;box-shadow:0 8px 32px rgba(0,0,0,.18);width:100%;max-width:680px;margin-bottom:16px}
-.menu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:600px}
-.menu-btn{background:#fff;border-radius:20px;padding:18px 12px;text-align:center;cursor:pointer;box-shadow:0 8px 32px rgba(0,0,0,.18);transition:transform .2s;border:4px solid transparent}
-.menu-btn:active,.menu-btn:hover{transform:scale(1.03)}
-.menu-btn .icon{font-size:clamp(32px,8vw,52px);display:block;margin-bottom:8px}
-.menu-btn .label{font-size:clamp(13px,3.5vw,18px);font-weight:700;color:#333}
-.menu-btn.reading{border-color:#FF6B9D}.menu-btn.math{border-color:#FFD93D}.menu-btn.history{border-color:#FF8C42}.menu-btn.ai{border-color:#9B59B6}.menu-btn.drawing{border-color:#6BCB77}
-.back-btn{background:#fff;border:3px solid #764ba2;color:#764ba2;border-radius:30px;padding:8px 20px;font-size:15px;font-family:inherit;cursor:pointer;font-weight:700;margin-bottom:12px;align-self:flex-start}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-top:12px}
-.choice-btn{background:linear-gradient(135deg,#f6f7fa,#e9ecf1);border:3px solid #ccc;border-radius:16px;padding:14px 8px;font-size:clamp(14px,4vw,20px);font-family:inherit;cursor:pointer;font-weight:700;color:#333}
-.choice-btn.correct{background:linear-gradient(135deg,#6BCB77,#4CAF50);border-color:#388e3c;color:#fff}
-.choice-btn.wrong{background:linear-gradient(135deg,#ff6b6b,#e53935);border-color:#c62828;color:#fff}
-.question-box{background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;padding:20px;text-align:center;color:#fff;margin-bottom:16px}
-.question-sub{font-size:clamp(12px,3vw,16px);margin-top:8px;opacity:.9}
-#feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);z-index:999;pointer-events:none;transition:transform .3s;font-size:clamp(40px,12vw,80px)}
-#feedback.show{transform:translate(-50%,-50%) scale(1)}
-.progress-wrap{background:rgba(255,255,255,.3);border-radius:10px;height:14px;width:100%;margin-bottom:12px;overflow:hidden}
-.progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#6BCB77,#FFD93D);transition:width .4s}
-.big-letter{font-size:clamp(60px,18vw,120px);font-weight:700;text-align:center;padding:20px;line-height:1}
-.vowel-style{color:#FF6B9D}.cons-style{color:#4ECDC4}
-.sentence-style{font-size:clamp(16px,4vw,24px);text-align:center;padding:10px;line-height:1.6}
-.math-big{font-size:clamp(32px,9vw,64px);font-weight:700;text-align:center;padding:16px}
-.math-emojis{font-size:clamp(24px,7vw,48px);text-align:center;letter-spacing:4px;margin:8px 0}
-.hero-icon{font-size:clamp(40px,10vw,64px);text-align:center;margin:8px 0}
-.hero-name{font-size:clamp(18px,5vw,28px);font-weight:700;color:#764ba2;text-align:center}
-.hero-fact{font-size:clamp(13px,3.5vw,18px);line-height:1.7;text-align:center;padding:8px;color:#333}
-.ai-box{background:linear-gradient(135deg,#9B59B6,#6c3483);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px;font-size:clamp(14px,3.5vw,18px);line-height:1.7}
-#canvas{border-radius:16px;touch-action:none;cursor:crosshair;max-width:100%;display:block}
-.palette{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
-.swatch{width:clamp(28px,6vw,40px);height:clamp(28px,6vw,40px);border-radius:50%;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-.swatch.active{border-color:#333;transform:scale(1.25)}
-.bsizes{display:flex;gap:10px;align-items:center;justify-content:center;margin:6px 0}
-.bbtn{width:36px;height:36px;border-radius:50%;border:2px solid #999;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.bbtn.active{border-color:#764ba2;background:#f3e5ff}
-.draw-ctrls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
-.dbtn{background:#fff;border:2px solid #ccc;border-radius:12px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700}
-.draw-prompt{font-size:clamp(16px,4vw,22px);font-weight:700;text-align:center;color:#764ba2;background:#f3e5ff;border-radius:12px;padding:10px 16px;margin-bottom:8px}
-.voice-btn{background:linear-gradient(135deg,#FF6B9D,#ff4081);color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;cursor:pointer}
-.voice-row{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0}
-.lvl-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
-.lvl-btn{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid}
-.confetti{position:fixed;width:10px;height:10px;border-radius:2px;animation:fall 2.5s linear forwards;pointer-events:none;z-index:9999}
-@media(min-width:768px){.menu-grid{grid-template-columns:repeat(3,1fr)}}
-#done{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 70px);padding:20px;text-align:center}
-#done.active{display:flex}
-.done-card{background:#fff;border-radius:30px;padding:30px;box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:500px;width:100%}
-.done-title{font-size:clamp(22px,6vw,36px);font-weight:700;color:#764ba2;margin-bottom:8px}
-.done-score{font-size:clamp(28px,8vw,52px);font-weight:700;background:linear-gradient(135deg,#FF6B9D,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.again-btn{background:linear-gradient(135deg,#FF6B9D,#764ba2);color:#fff;border:none;border-radius:30px;padding:14px 32px;font-size:18px;font-family:inherit;cursor:pointer;margin-top:16px;font-weight:700}
+#hdr{background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);background-size:300%;animation:rainbow 4s linear infinite;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+#hdr h1{font-size:clamp(16px,4vw,24px);color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.5)}
+#chip{font-size:32px;cursor:pointer;animation:bounce 2s ease-in-out infinite}
+#sdp{background:rgba(255,255,255,0.3);border-radius:20px;padding:4px 12px;color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;gap:4px}
+.scr{display:none;flex-direction:column;align-items:center;flex:1;padding:14px;overflow-y:auto}
+#menu{display:flex}
+#menu h2{font-size:clamp(20px,5vw,32px);color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.5);margin-bottom:16px;text-align:center}
+#mg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:600px}
+.card{background:#fff;border-radius:20px;padding:16px 10px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 12px rgba(0,0,0,0.2);text-align:center;border:3px solid transparent;user-select:none}
+.card:hover,.card:active{transform:scale(1.07);box-shadow:0 8px 20px rgba(0,0,0,0.3)}
+.card .ic{font-size:clamp(28px,7vw,48px);margin-bottom:6px}
+.card .lbl{font-size:clamp(11px,3vw,15px);font-weight:700;color:#333}
+.card:nth-child(1){border-color:#ff6b6b}
+.card:nth-child(2){border-color:#feca57}
+.card:nth-child(3){border-color:#ff9ff3}
+.card:nth-child(4){border-color:#48dbfb}
+.card:nth-child(5){border-color:#7bed9f}
+#tp{color:rgba(255,255,255,0.75);font-size:13px;margin-top:12px;text-align:center}
+.sec-hdr{font-size:clamp(18px,5vw,28px);color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.4);margin-bottom:10px;text-align:center}
+.hbtn{background:rgba(255,255,255,0.25);border:2px solid rgba(255,255,255,0.6);border-radius:25px;padding:6px 14px;color:#fff;font-family:inherit;font-size:14px;cursor:pointer;margin-bottom:10px;transition:background .2s}
+.hbtn:hover{background:rgba(255,255,255,0.45)}
+.cbox{background:rgba(255,255,255,0.95);border-radius:20px;padding:16px;width:100%;max-width:560px;display:flex;flex-direction:column;align-items:center;min-height:200px;box-shadow:0 4px 14px rgba(0,0,0,0.2)}
+.opt{background:#fff;border:3px solid #ddd;border-radius:16px;padding:12px 20px;font-family:inherit;font-size:clamp(14px,4vw,18px);cursor:pointer;transition:all .2s;font-weight:700;color:#333;min-width:90px}
+.opt:hover,.opt:active{transform:scale(1.08);border-color:#9b59b6}
+.lvls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+.lvl{background:rgba(255,255,255,0.25);border:2px solid rgba(255,255,255,0.6);border-radius:20px;padding:8px 14px;color:#fff;font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s;user-select:none}
+.lvl:hover,.lvl.active{background:rgba(255,255,255,0.5);transform:scale(1.05)}
+.draw-prompt{font-size:clamp(18px,5vw,28px);font-weight:700;text-align:center;color:#198754;margin-bottom:4px}
+.canvas-wrap{display:flex;justify-content:center;width:100%;max-width:560px}
+#canvas{border:3px solid #ccc;border-radius:12px;background:#fff;touch-action:none;cursor:crosshair;width:100%;max-width:540px;height:220px}
+.palette{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0}
+.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid #999;transition:transform .15s}
+.swatch:hover,.swatch:active{transform:scale(1.3)}
+.bsizes{display:flex;align-items:center;gap:6px;margin:4px 0}
+.draw-ctrls{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}
+.dbtn{background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.7);border-radius:12px;padding:8px 14px;color:#fff;font-family:inherit;font-size:13px;cursor:pointer;transition:all .2s}
+.dbtn:hover{background:rgba(255,255,255,0.5)}
+.done-card{background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:24px;padding:24px;width:100%;max-width:400px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.done-title{font-size:clamp(24px,8vw,40px);animation:bounce 1s infinite;text-align:center;margin-bottom:8px}
+.done-score{id:ds;font-size:16px;color:#666;margin-top:4px}
+.again-btn{background:linear-gradient(135deg,#11998e,#38ef7d);border:none;border-radius:20px;padding:14px 28px;color:#fff;font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;margin-top:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+#fb{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:10px 22px;border-radius:25px;font-size:16px;display:none;z-index:100;text-align:center;border-radius:20px}
+@media(max-width:400px){#mg{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
-<div id="feedback"></div>
-<div id="header">
-  <span id="chipmunk" onclick="speakChipmunk()">&#x1F43F;&#xFE0F;</span>
+<div id="hdr">
+  <span id="chip" onclick="chipClick()">&#x1F43F;&#xFE0F;</span>
   <h1>Learning with Chipmunk!</h1>
-  <div id="score-display">&#x2B50; <span id="sv">0</span></div>
+  <div id="sdp">&#x2B50; <span id="sv">0</span></div>
 </div>
-<div id="menu" class="screen active">
-  <h2 style="font-size:clamp(20px,5vw,36px);color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,.4);text-align:center;margin-bottom:8px">&#x1F31F; What do you want to learn today? &#x1F31F;</h2>
-  <div class="menu-grid">
-    <div class="menu-btn reading" onclick="go('reading')"><span class="icon">&#x1F4DA;</span><span class="label">Reading &amp; Sounds</span></div>
-    <div class="menu-btn math" onclick="go('math')"><span class="icon">&#x1F522;</span><span class="label">Fun Math</span></div>
-    <div class="menu-btn history" onclick="go('history')"><span class="icon">&#x270A;&#x1F3FE;</span><span class="label">Black History Heroes</span></div>
-    <div class="menu-btn ai" onclick="go('ai')"><span class="icon">&#x1F916;</span><span class="label">What is AI?</span></div>
-    <div class="menu-btn drawing" onclick="go('drawing')" style="grid-column:1/-1"><span class="icon">&#x1F3A8;</span><span class="label">Drawing Game</span></div>
-  </div>
-  <p style="margin-top:16px;color:white;font-size:15px;text-align:center;opacity:.9">Tap Chipmunk &#x1F43F;&#xFE0F; for a fun message!</p>
-</div>
-<div id="reading" class="screen">
-  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
-  <div class="card">
-    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#d63384">&#x1F4DA; Reading with Chipmunk!</div>
-    <div class="lvl-btns">
-      <div id="ls" class="lvl-btn" style="background:#d63384;color:#fff;border-color:#d63384" onclick="setR('sounds')">&#x1F50A; Sounds</div>
-      <div id="lv" class="lvl-btn" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setR('vowels')">&#x1F170;&#xFE0F; Vowels</div>
-      <div id="lw" class="lvl-btn" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setR('words')">&#x1F4DD; Words</div>
-      <div id="lx" class="lvl-btn" style="background:#fff3e0;color:#fd7e14;border-color:#fd7e14" onclick="setR('sentences')">&#x1F4D6; Sentences</div>
+<div id="fb"></div>
+
+<!-- HOME MENU -->
+<div id="menu" class="scr">
+  <h2>&#x1F31F; What do you want to learn today? &#x1F31F;</h2>
+  <div id="mg">
+    <div class="card" onclick="go('reading')">
+      <div class="ic">&#x1F4DA;</div>
+      <div class="lbl">Reading &amp; Sounds</div>
     </div>
-    <div class="progress-wrap"><div class="progress-fill" id="rp" style="width:0"></div></div>
-    <div id="rc"></div><div class="choices" id="rch"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button><span style="font-size:14px;color:#666">Tap to hear!</span></div>
-  </div>
-</div>
-<div id="math" class="screen">
-  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
-  <div class="card">
-    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#e67e22">&#x1F522; Math Fun!</div>
-    <div class="lvl-btns">
-      <div id="mc" class="lvl-btn" style="background:#fd7e14;color:#fff;border-color:#fd7e14" onclick="setM('counting')">&#x1F34E; Counting</div>
-      <div id="ma" class="lvl-btn" style="background:#e8fff0;color:#198754;border-color:#198754" onclick="setM('addition')">&#x2795; Adding</div>
-      <div id="ms" class="lvl-btn" style="background:#e8f4ff;color:#0d6efd;border-color:#0d6efd" onclick="setM('subtraction')">&#x2796; Taking Away</div>
-      <div id="msh" class="lvl-btn" style="background:#f3e5ff;color:#9B59B6;border-color:#9B59B6" onclick="setM('shapes')">&#x1F537; Shapes</div>
+    <div class="card" onclick="go('math')">
+      <div class="ic">&#x1F522;</div>
+      <div class="lbl">Fun Math</div>
     </div>
-    <div class="progress-wrap"><div class="progress-fill" id="mp" style="width:0"></div></div>
-    <div id="mc2"></div><div class="choices" id="mch"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
-  </div>
-</div>
-<div id="history" class="screen">
-  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
-  <div class="card">
-    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#e67e22">&#x270A;&#x1F3FE; Black History Heroes!</div>
-    <div class="progress-wrap"><div class="progress-fill" id="hp" style="width:0"></div></div>
-    <div id="hc"></div><div class="choices" id="hch"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
-  </div>
-</div>
-<div id="ai" class="screen">
-  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
-  <div class="card">
-    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:16px;text-align:center;color:#9B59B6">&#x1F916; What is Artificial Intelligence?</div>
-    <div class="progress-wrap"><div class="progress-fill" id="ap" style="width:0"></div></div>
-    <div id="ac"></div><div class="choices" id="ach"></div>
-    <div class="voice-row"><button class="voice-btn" onclick="speakCur()">&#x1F50A;</button></div>
-  </div>
-</div>
-<div id="drawing" class="screen">
-  <button class="back-btn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
-  <div class="card" style="padding:14px">
-    <div style="font-size:clamp(18px,5vw,28px);font-weight:700;margin-bottom:8px;text-align:center;color:#198754">&#x1F3A8; Drawing with Chipmunk!</div>
-    <div class="draw-prompt">Draw: <span id="dw">a cat &#x1F431;</span></div>
-    <div style="display:flex;justify-content:center"><canvas id="canvas"></canvas></div>
-    <div class="palette" id="pal"></div>
-    <div class="bsizes" id="bsz"></div>
-    <div class="draw-ctrls">
-      <button class="dbtn" onclick="clearC()" style="border-color:#e53935;color:#e53935">&#x1F5D1;&#xFE0F; Clear</button>
-      <button class="dbtn" onclick="toggleE()" id="ebtn" style="border-color:#888;color:#555">&#x2B1C; Eraser</button>
-      <button class="dbtn" onclick="newWord()" style="border-color:#198754;color:#198754">&#x1F500; New Word</button>
-      <button class="dbtn" onclick="sayWord()" style="border-color:#0d6efd;color:#0d6efd">&#x1F50A; Say It</button>
+    <div class="card" onclick="go('history')">
+      <div class="ic">&#x270A;&#x1F3FE;</div>
+      <div class="lbl">Black History Heroes</div>
     </div>
-    <p style="text-align:center;margin-top:8px;font-size:13px;color:#888">Use your finger or mouse to draw!</p>
+    <div class="card" onclick="go('ai')">
+      <div class="ic">&#x1F916;</div>
+      <div class="lbl">What is AI?</div>
+    </div>
+    <div class="card" onclick="go('drawing')">
+      <div class="ic">&#x1F3A8;</div>
+      <div class="lbl">Drawing Game</div>
+    </div>
   </div>
+  <p id="tp">Tap Chipmunk &#x1F43F;&#xFE0F; for a fun message!</p>
 </div>
-<div id="done">
+
+<!-- READING SECTION -->
+<div id="reading" class="scr">
+  <div class="sec-hdr">&#x1F4DA; Reading with Chipmunk!</div>
+  <div class="lvls">
+    <div class="lvl" id="ls" onclick="setR('sounds')">&#x1F50A; Sounds</div>
+    <div class="lvl" id="lv" onclick="setR('vowels')">&#x1F170;&#xFE0F; Vowels</div>
+    <div class="lvl" id="lw" onclick="setR('words')">&#x1F4DD; Words</div>
+    <div class="lvl" id="lx" onclick="setR('sentences')">&#x1F4D6; Sentences</div>
+  </div>
+  <div id="rp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- MATH SECTION -->
+<div id="math" class="scr">
+  <div class="sec-hdr">&#x1F522; Math Fun!</div>
+  <div class="lvls">
+    <div class="lvl" id="mc" onclick="setM(1)">&#x1F34E; Counting</div>
+    <div class="lvl" id="ma" onclick="setM(1)">&#x2795; Adding</div>
+    <div class="lvl" id="ms" onclick="setM(2)">&#x2796; Taking Away</div>
+    <div class="lvl" id="msh" onclick="setM(3)">&#x1F537; Shapes</div>
+  </div>
+  <div id="mp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- HISTORY SECTION -->
+<div id="history" class="scr">
+  <div class="sec-hdr">&#x270A;&#x1F3FE; Black History Heroes!</div>
+  <div id="hp" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- AI SECTION -->
+<div id="ai" class="scr">
+  <div class="sec-hdr">&#x1F916; What is Artificial Intelligence?</div>
+  <div id="ap" class="cbox"></div>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- DRAWING SECTION -->
+<div id="drawing" class="scr">
+  <div class="draw-prompt">Draw: <span id="dw">a cat &#x1F431;</span></div>
+  <div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+  <div class="palette" id="pal"></div>
+  <div class="bsizes" id="bsz"></div>
+  <div class="draw-ctrls">
+    <button class="dbtn" onclick="clearC()" style="border-color:#e53935;color:#e53935;background:#fff1f0">&#x1F5D1;&#xFE0F; Clear</button>
+    <button class="dbtn" onclick="toggleE()" id="ebtn" style="border-color:#888;color:#2B2B1C">&#x25A1; Eraser</button>
+    <button class="dbtn" onclick="newWord()" style="border-color:#198754;color:#198754">&#x1F500; New Word</button>
+    <button class="dbtn" onclick="sayWord()" style="border-color:#0d6efd;color:#0d6efd">&#x1F50A; Say It</button>
+  </div>
+  <p style="text-align:center;margin-top:8px;font-size:13px;color:#888">Use your finger or mouse to draw!</p>
+  <button class="hbtn" onclick="goHome()">&#x2B05;&#xFE0F; Home</button>
+</div>
+
+<!-- DONE SCREEN -->
+<div id="done" class="scr">
   <div class="done-card">
-    <div style="font-size:80px;animation:bounce 1s infinite;text-align:center;margin-bottom:16px">&#x1F389;</div>
-    <div class="done-title">Amazing Job!</div>
+    <div class="done-title">&#x1F389;</div>
+    <p style="font-size:16px;color:#666;margin-bottom:8px">Amazing Job!</p>
     <p style="font-size:16px;color:#666;margin-bottom:8px">You scored</p>
-    <div class="done-score" id="ds">0</div>
+    <div id="ds" style="font-size:30px;font-weight:700;color:#333;margin:6px 0">0</div>
     <p style="font-size:16px;color:#666;margin-top:4px">stars!</p>
-    <div id="dstars" style="display:flex;justify-content:center;gap:4px;margin:8px 0;font-size:28px"></div>
+    <div id="dstars" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin:8px 0;font-size:28px"></div>
     <button class="again-btn" onclick="goHome()">&#x1F3E0; Play Again!</button>
   </div>
-      </div>
+</div>
+
 <script>
-var score=0,streak=0,lvl=1,curSec='';
+var score=0,streak=0,curSec='';
 var synth=window.speechSynthesis;
 function say(txt){
   if(!synth)return;
@@ -180,42 +178,53 @@ function speakChipmunk(txt){
   u.rate=1.35;u.pitch=2.0;u.volume=1;
   synth.speak(u);
 }
+function chipClick(){
+  var msgs=[
+    'Hi! I am Chipmunk! Keep learning!',
+    'You are so smart!',
+    'Learning is so much fun!',
+    'I believe in you!',
+    'Wow you are amazing!'
+  ];
+  speakChipmunk(msgs[Math.floor(Math.random()*msgs.length)]);
+}
 function go(sec){
   curSec=sec;
-  var ids=['home','read','math','hist','ai','draw','done'];
+  var ids=['menu','reading','math','history','ai','drawing','done'];
   for(var i=0;i<ids.length;i++){
     var el=document.getElementById(ids[i]);
     if(el)el.style.display='none';
   }
   var target=document.getElementById(sec);
   if(target)target.style.display='flex';
-  score=0;streak=0;lvl=1;
-  document.getElementById('score').textContent='0';
-  if(sec==='read')genR();
+  score=0;streak=0;
+  var sv=document.getElementById('sv');
+  if(sv)sv.textContent='0';
+  if(sec==='reading')genR();
   else if(sec==='math')genM();
-  else if(sec==='hist')genH();
+  else if(sec==='history')genH();
   else if(sec==='ai')genA();
-  else if(sec==='draw')initDraw();
+  else if(sec==='drawing')initDraw();
 }
 function goHome(){
   synth&&synth.cancel();
-  var ids=['home','read','math','hist','ai','draw','done'];
+  var ids=['menu','reading','math','history','ai','drawing','done'];
   for(var i=0;i<ids.length;i++){
     var el=document.getElementById(ids[i]);
     if(el)el.style.display='none';
   }
-  document.getElementById('home').style.display='flex';
+  var m=document.getElementById('menu');
+  if(m)m.style.display='flex';
 }
 function addScore(n){
   score+=n;streak++;
-  document.getElementById('score').textContent=score;
-  if(streak%5===0)showDone();
+  var sv=document.getElementById('sv');
+  if(sv)sv.textContent=score;
+  if(streak>0&&streak%5===0)showDone();
 }
 function wrongAns(){
   streak=0;
   speakChipmunk('Oops! Try again!');
-  var bts=document.querySelectorAll('.opt');
-  for(var i=0;i<bts.length;i++){bts[i].style.background='';}
 }
 function shuffle(arr){
   var a=arr.slice();
@@ -259,6 +268,14 @@ var SNTS=[
 var rIdx=0,rItems=[],rType='';
 function setR(type){
   rType=type;
+  var all=['ls','lv','lw','lx'];
+  for(var i=0;i<all.length;i++){
+    var el=document.getElementById(all[i]);
+    if(el)el.className='lvl';
+  }
+  var map={sounds:'ls',vowels:'lv',words:'lw',sentences:'lx'};
+  var active=document.getElementById(map[type]);
+  if(active)active.className='lvl active';
   if(type==='sounds'){rItems=SOUNDS.slice();}
   else if(type==='vowels'){rItems=VOWELS.slice();}
   else if(type==='words'){rItems=WDS.slice();}
@@ -267,12 +284,11 @@ function setR(type){
   rIdx=0;
   genR();
 }
-function upRLvl(){lvl++;}
 function genR(){
-  var box=document.getElementById('rbox');
+  var box=document.getElementById('rp');
   if(!box)return;
   if(rType===''){
-    box.innerHTML='<p style="font-size:20px;color:#555;text-align:center;padding:20px;">Choose a reading level below!</p>';
+    box.innerHTML='<p style="font-size:18px;color:#555;text-align:center;padding:20px;">Choose a reading level above!</p>';
     return;
   }
   if(rIdx>=rItems.length){rItems=shuffle(rItems);rIdx=0;}
@@ -280,11 +296,17 @@ function genR(){
   if(rType==='sounds'){
     var correct=item;
     var opts=shuffle(SOUNDS.filter(function(s){return s!==correct;})).slice(0,3);
-    opts.push(correct);
-    opts=shuffle(opts);
-    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">What letter makes this sound?</p>'+
-      '<div style="font-size:72px;margin:10px 0;">'+(correct==='A'?'&#x1F34E;':correct==='E'?'&#x1F95A;':correct==='I'?'&#x1F9CA;':correct==='O'?'&#x1F419;':correct==='U'?'&#x2602;':'&#x2728;')+'</div>'+
-      '<p style="font-size:36px;font-weight:700;color:#333;margin:4px 0;">'+correct+'</p>';
+    opts.push(correct);opts=shuffle(opts);
+    box.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:8px;">What letter makes this sound?</p>';
+    var bigDiv=document.createElement('div');
+    bigDiv.style.cssText='font-size:64px;margin:6px 0;';
+    var emojiMap={A:'&#x1F34E;',E:'&#x1F95A;',I:'&#x1F9CA;',O:'&#x1F419;',U:'&#x2602;'};
+    bigDiv.innerHTML=emojiMap[correct]||'&#x2728;';
+    box.appendChild(bigDiv);
+    var lbl=document.createElement('p');
+    lbl.style.cssText='font-size:32px;font-weight:700;color:#333;margin:4px 0;';
+    lbl.textContent=correct;
+    box.appendChild(lbl);
     var og=document.createElement('div');
     og.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
     for(var i=0;i<opts.length;i++){
@@ -302,12 +324,19 @@ function genR(){
     var parts=item.split(' says ');
     var letter=parts[0];
     var rest=parts.length>1?parts[1]:'';
-    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">Listen and choose the vowel!</p>'+
-      '<div style="font-size:64px;margin:10px 0;">'+(letter==='A'?'&#x1F34E;':letter==='E'?'&#x1F95A;':letter==='I'?'&#x1F9CA;':letter==='O'?'&#x1F419;':'&#x2602;')+'</div>'+
-      '<p style="font-size:20px;color:#555;margin:4px 0;">'+rest+'</p>';
-    var vOpts=shuffle(['A','E','I','O','U']);
+    var emojiMapV={A:'&#x1F34E;',E:'&#x1F95A;',I:'&#x1F9CA;',O:'&#x1F419;',U:'&#x2602;'};
+    box.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:8px;">Listen and choose the vowel!</p>';
+    var bDiv=document.createElement('div');
+    bDiv.style.cssText='font-size:60px;margin:6px 0;';
+    bDiv.innerHTML=emojiMapV[letter]||'&#x2B50;';
+    box.appendChild(bDiv);
+    var rDiv=document.createElement('p');
+    rDiv.style.cssText='font-size:18px;color:#555;margin:4px 0;';
+    rDiv.textContent=rest;
+    box.appendChild(rDiv);
     var vg=document.createElement('div');
     vg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+    var vOpts=shuffle(['A','E','I','O','U']);
     for(var vi=0;vi<vOpts.length;vi++){
       (function(o,c){
         var b=document.createElement('button');
@@ -323,10 +352,12 @@ function genR(){
     var correct2=item.w;
     var allW=WDS.map(function(x){return x.w;});
     var opts2=shuffle(allW.filter(function(s){return s!==correct2;})).slice(0,3);
-    opts2.push(correct2);
-    opts2=shuffle(opts2);
-    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">What word does the picture show?</p>'+
-      '<div style="font-size:72px;margin:10px 0;">'+item.img+'</div>';
+    opts2.push(correct2);opts2=shuffle(opts2);
+    box.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:8px;">What word does the picture show?</p>';
+    var imgDiv=document.createElement('div');
+    imgDiv.style.cssText='font-size:68px;margin:6px 0;';
+    imgDiv.innerHTML=item.img;
+    box.appendChild(imgDiv);
     var wg=document.createElement('div');
     wg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
     for(var wi=0;wi<opts2.length;wi++){
@@ -350,8 +381,11 @@ function genR(){
     var allWw=WDS.map(function(x){return x.w.charAt(0).toUpperCase()+x.w.slice(1).toLowerCase()});
     var distract=shuffle(allWw.filter(function(w){return w.toLowerCase()!==answer.toLowerCase();})).slice(0,3);
     var sOpts=shuffle(distract.concat([answer.charAt(0).toUpperCase()+answer.slice(1).toLowerCase()]));
-    box.innerHTML='<p style="font-size:18px;color:#444;margin-bottom:8px;">Fill in the blank!</p>'+
-      '<p style="font-size:22px;font-weight:700;color:#333;line-height:1.5;margin:10px 0;">'+displayed.join(' ')+'</p>';
+    box.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:8px;">Fill in the blank!</p>';
+    var snDiv=document.createElement('p');
+    snDiv.style.cssText='font-size:20px;font-weight:700;color:#333;line-height:1.5;margin:10px 0;';
+    snDiv.textContent=displayed.join(' ');
+    box.appendChild(snDiv);
     var sg=document.createElement('div');
     sg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
     for(var si=0;si<sOpts.length;si++){
@@ -373,7 +407,7 @@ function chkR(ok,btn){
     btn.style.color='#fff';
     speakChipmunk('Amazing! You got it!');
     addScore(10);
-    setTimeout(genR,1200);
+    setTimeout(genR,1300);
   } else {
     btn.style.background='#f44336';
     btn.style.color='#fff';
@@ -381,64 +415,64 @@ function chkR(ok,btn){
     setTimeout(function(){btn.style.background='';btn.style.color='';},800);
   }
 }
-var SHP=['&#x25CF;','&#x25A0;','&#x25B2;','&#x2605;','&#x2764;'];
-var SHPN=['circle','square','triangle','star','heart'];
-var EMJS=['&#x1F600;','&#x1F602;','&#x1F60D;','&#x1F92E;','&#x1F973;','&#x1F914;','&#x1F631;','&#x1F920;'];
-var mQ=null,mA=0,mLvl=1;
+var EMJS=['&#x1F600;','&#x1F602;','&#x1F60D;','&#x1F973;','&#x1F914;','&#x1F631;','&#x1F920;','&#x1F47B;'];
+var mLvl=1;
 function setM(t){
   mLvl=t;
   genM();
 }
 function genM(){
-  var box=document.getElementById('mbox');
+  var box=document.getElementById('mp');
   if(!box)return;
-  var a,b,ans,q;
+  var a,b,ans;
+  var q=document.createElement('div');
   if(mLvl===1){
     a=Math.floor(Math.random()*5)+1;
     b=Math.floor(Math.random()*5)+1;
     ans=a+b;
-    var eA='';
-    for(var i=0;i<a;i++)eA+=EMJS[Math.floor(Math.random()*EMJS.length)];
-    var eB='';
-    for(var j=0;j<b;j++)eB+=EMJS[Math.floor(Math.random()*EMJS.length)];
-    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">How many in all?</p>'+
-      '<div style="font-size:40px;letter-spacing:2px;margin:8px 0;">'+eA+' + '+eB+'</div>';
-    mA=ans;
+    var eA='';for(var i=0;i<a;i++)eA+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    var eB='';for(var j=0;j<b;j++)eB+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:6px;">How many in all?</p>'+
+      '<div style="font-size:36px;letter-spacing:2px;margin:8px 0;">'+eA+' + '+eB+'</div>';
+    speakChipmunk('How many in all? '+a+' plus '+b);
   } else if(mLvl===2){
     a=Math.floor(Math.random()*6)+2;
     b=Math.floor(Math.random()*(a-1))+1;
     ans=a-b;
-    var eT='';
-    for(var k=0;k<a;k++)eT+=EMJS[Math.floor(Math.random()*EMJS.length)];
-    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">How many are left?</p>'+
-      '<div style="font-size:40px;letter-spacing:2px;margin:8px 0;">'+eT+'</div>'+
-      '<p style="font-size:26px;color:#e91e63;font-weight:700;">Take away '+b+'</p>';
-    mA=ans;
+    var eT='';for(var k=0;k<a;k++)eT+=EMJS[Math.floor(Math.random()*EMJS.length)];
+    q.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:6px;">How many are left?</p>'+
+      '<div style="font-size:36px;letter-spacing:2px;margin:8px 0;">'+eT+'</div>'+
+      '<p style="font-size:24px;color:#e91e63;font-weight:700;">Take away '+b+'</p>';
+    speakChipmunk('How many are left after taking away '+b+'?');
   } else {
-    var shapes=[];
-    var shIdx=Math.floor(Math.random()*SHP.length);
+    var shps=['&#x25CF;','&#x25A0;','&#x25B2;','&#x2605;','&#x2764;'];
+    var shIdx=Math.floor(Math.random()*shps.length);
     var cnt=Math.floor(Math.random()*7)+3;
-    for(var m=0;m<cnt;m++)shapes.push(SHP[shIdx]);
-    q='<p style="font-size:18px;color:#444;margin-bottom:6px;">Count the shapes!</p>'+
-      '<div style="font-size:44px;letter-spacing:4px;margin:8px 0;">'+shapes.join('')+'</div>';
-    mA=cnt;
+    var sh='';
+    for(var m=0;m<cnt;m++)sh+=shps[shIdx];
+    ans=cnt;
+    q.innerHTML='<p style="font-size:16px;color:#444;margin-bottom:6px;">Count the shapes!</p>'+
+      '<div style="font-size:40px;letter-spacing:4px;margin:8px 0;word-break:break-all;">'+sh+'</div>';
+    speakChipmunk('Count the shapes! How many are there?');
   }
-  mQ=q;
-  var wrong1,wrong2,wrong3;
-  wrong1=ans+1;wrong2=ans===0?2:ans-1;wrong3=ans+2;
+  var wrong1=ans+1;
+  var wrong2=ans<=0?2:ans-1;
+  var wrong3=ans+2;
   var mopts=shuffle([ans,wrong1,wrong2,wrong3]);
-  box.innerHTML=q+'<div id="mbtn" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;"></div>';
-  var mg=document.getElementById('mbtn');
+  box.innerHTML='';
+  box.appendChild(q);
+  var mg=document.createElement('div');
+  mg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;';
   for(var mi=0;mi<mopts.length;mi++){
     (function(o,c){
-      var b=document.createElement('button');
-      b.className='opt';
-      b.textContent=o;
-      b.onclick=function(){chkM(o===c,this);};
-      mg.appendChild(b);
+      var bt=document.createElement('button');
+      bt.className='opt';
+      bt.textContent=o;
+      bt.onclick=function(){chkM(o===c,this);};
+      mg.appendChild(bt);
     })(mopts[mi],ans);
   }
-  speakChipmunk(mLvl===3?'Count the shapes! How many are there?':(mLvl===2?'How many are left after taking away '+b+'?':('How many in all? '+a+' plus '+b)));
+  box.appendChild(mg);
 }
 function chkM(ok,btn){
   if(ok){
@@ -446,7 +480,7 @@ function chkM(ok,btn){
     btn.style.color='#fff';
     speakChipmunk('Correct! You are so smart!');
     addScore(10);
-    setTimeout(genM,1200);
+    setTimeout(genM,1300);
   } else {
     btn.style.background='#f44336';
     btn.style.color='#fff';
@@ -455,39 +489,50 @@ function chkM(ok,btn){
   }
 }
 var HST=[
-  {name:'Harriet Tubman',fact:'She helped hundreds of slaves escape to freedom on the Underground Railroad.',emoji:'&#x1F333;',q:'What did Harriet Tubman help people do?',opts:['Escape to freedom','Build houses','Bake cookies','Fly airplanes'],a:0},
-  {name:'Martin Luther King Jr.',fact:'He led peaceful marches so ALL people could be treated equally.',emoji:'&#x270A;',q:'What did Dr. King believe in?',opts:['Equal rights for all','Only rich people matter','No school for kids','No music allowed'],a:0},
+  {name:'Harriet Tubman',fact:'She helped hundreds of enslaved people escape to freedom through the Underground Railroad.',emoji:'&#x1F333;',q:'What did Harriet Tubman help people do?',opts:['Escape to freedom','Build houses','Bake cookies','Fly airplanes'],a:0},
+  {name:'Martin Luther King Jr.',fact:'He led peaceful marches so ALL people could be treated equally.',emoji:'&#x270A;&#x1F3FE;',q:'What did Dr. King believe in?',opts:['Equal rights for all','Only rich people matter','No school for kids','No music allowed'],a:0},
   {name:'Rosa Parks',fact:'She bravely refused to give up her bus seat and helped change unfair laws.',emoji:'&#x1F68C;',q:'What was Rosa Parks famous for?',opts:['Refusing to give up her bus seat','Inventing the car','Painting a picture','Flying to the moon'],a:0},
   {name:'Mae Jemison',fact:'She was the first Black woman to travel to space as an astronaut!',emoji:'&#x1F680;',q:'What did Mae Jemison do?',opts:['First Black woman in space','First person on Mars','Swam the ocean','Built the pyramids'],a:0},
   {name:'Barack Obama',fact:'He became the 44th President of the United States - the first Black president!',emoji:'&#x1F1FA;&#x1F1F8;',q:'What was Barack Obama?',opts:['First Black US President','An astronaut','A chef','A soccer player'],a:0},
-  {name:'George Washington Carver',fact:'He invented over 300 products from peanuts - including peanut butter!',emoji:'&#x1F95C;',q:'What did George Washington Carver invent from peanuts?',opts:['Over 300 products','Just one thing','Nothing at all','Ice cream only'],a:0},
+  {name:'George Washington Carver',fact:'He invented over 300 products from peanuts - including peanut butter!',emoji:'&#x1F95C;',q:'What did George Washington Carver create from peanuts?',opts:['Over 300 products','Just one thing','Nothing at all','Ice cream only'],a:0},
   {name:'Serena Williams',fact:'She became one of the greatest tennis players in the world!',emoji:'&#x1F3BE;',q:'What sport is Serena Williams famous for?',opts:['Tennis','Soccer','Swimming','Basketball'],a:0},
-  {name:'Bessie Coleman',fact:'She was the first Black woman to become a licensed airplane pilot.',emoji:'&#x2708;',q:'What was Bessie Coleman the first to do?',opts:['First Black female pilot','First woman on the moon','First woman to swim','First woman in school'],a:0}
+  {name:'Bessie Coleman',fact:'She was the first Black woman to earn a pilot license and fly an airplane.',emoji:'&#x2708;&#xFE0F;',q:'What was Bessie Coleman the first to do?',opts:['First Black female pilot','First woman on the moon','First woman to swim','First woman in school'],a:0}
 ];
 var hIdx=0,hList=[];
 function genH(){
-  var box=document.getElementById('hbox');
+  var box=document.getElementById('hp');
   if(!box)return;
   if(hList.length===0){hList=shuffle(HST.slice());hIdx=0;}
   if(hIdx>=hList.length){hList=shuffle(HST.slice());hIdx=0;}
   var hero=hList[hIdx++];
-  var ao=hero.opts.slice();
-  box.innerHTML=
-    '<div style="font-size:56px;margin-bottom:6px;">'+hero.emoji+'</div>'+
-    '<p style="font-size:22px;font-weight:700;color:#2c3e50;margin:4px 0;">'+hero.name+'</p>'+
-    '<p style="font-size:16px;color:#555;margin:6px 10px 14px;">'+hero.fact+'</p>'+
-    '<p style="font-size:18px;font-weight:600;color:#333;">'+hero.q+'</p>';
+  box.innerHTML='';
+  var eDiv=document.createElement('div');
+  eDiv.style.cssText='font-size:52px;margin-bottom:4px;';
+  eDiv.innerHTML=hero.emoji;
+  box.appendChild(eDiv);
+  var nDiv=document.createElement('p');
+  nDiv.style.cssText='font-size:20px;font-weight:700;color:#2c3e50;margin:4px 0;text-align:center;';
+  nDiv.textContent=hero.name;
+  box.appendChild(nDiv);
+  var fDiv=document.createElement('p');
+  fDiv.style.cssText='font-size:15px;color:#555;margin:4px 10px 10px;text-align:center;';
+  fDiv.textContent=hero.fact;
+  box.appendChild(fDiv);
+  var qDiv=document.createElement('p');
+  qDiv.style.cssText='font-size:17px;font-weight:600;color:#333;text-align:center;';
+  qDiv.textContent=hero.q;
+  box.appendChild(qDiv);
   var hg=document.createElement('div');
-  hg.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
-  for(var hi=0;hi<ao.length;hi++){
+  hg.style.cssText='display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px;';
+  for(var hi=0;hi<hero.opts.length;hi++){
     (function(o,ci){
-      var b=document.createElement('button');
-      b.className='opt';
-      b.style.cssText='font-size:14px;padding:10px 16px;';
-      b.textContent=o;
-      b.onclick=function(){chkH(ci===hero.a,this);};
-      hg.appendChild(b);
-    })(ao[hi],hi);
+      var bt=document.createElement('button');
+      bt.className='opt';
+      bt.style.cssText='font-size:13px;padding:10px 14px;';
+      bt.textContent=o;
+      bt.onclick=function(){chkH(ci===hero.a,this);};
+      hg.appendChild(bt);
+    })(hero.opts[hi],hi);
   }
   box.appendChild(hg);
   speakChipmunk(hero.name+'. '+hero.fact+' '+hero.q);
@@ -498,7 +543,7 @@ function chkH(ok,btn){
     btn.style.color='#fff';
     speakChipmunk('Wonderful! You learned about history!');
     addScore(10);
-    setTimeout(genH,1500);
+    setTimeout(genH,1600);
   } else {
     btn.style.background='#f44336';
     btn.style.color='#fff';
@@ -510,29 +555,35 @@ var AID=[
   {q:'What is Artificial Intelligence (AI)?',opts:['A smart computer program','A type of food','A sports game','A kind of plant'],a:0,explain:'AI is a smart computer program that can learn and help people!'},
   {q:'Can AI help you learn new things?',opts:['Yes!','No!','Only sometimes','Never'],a:0,explain:'Yes! AI can help you read, do math, and learn many things!'},
   {q:'Who creates AI programs?',opts:['Smart programmers','Robots by themselves','Animals','The sun'],a:0,explain:'People called programmers write special instructions to create AI!'},
-  {q:'Is AI your friend or something to be afraid of?',opts:['A helpful tool','Very scary','A monster','An alien'],a:0,explain:'AI is a helpful tool. People make sure it is safe and helpful!'},
+  {q:'Is AI a helpful tool or something to be afraid of?',opts:['A helpful tool','Very scary','A monster','An alien'],a:0,explain:'AI is a helpful tool. People make sure it is safe and helpful!'},
   {q:'Can AI draw pictures?',opts:['Yes, with special programs','No never','Only on paper','Only with a pencil'],a:0,explain:'Yes! There are AI programs that can help create pictures and art!'},
   {q:'Does AI have feelings like you do?',opts:['No, AI does not have feelings','Yes, it gets sad','Yes, it gets hungry','Yes, it gets tired'],a:0,explain:'AI does not have feelings. Only people and animals have real feelings!'}
 ];
 var aIdx=0,aList=[];
 function genA(){
-  var box=document.getElementById('abox');
+  var box=document.getElementById('ap');
   if(!box)return;
   if(aList.length===0){aList=shuffle(AID.slice());aIdx=0;}
   if(aIdx>=aList.length){aList=shuffle(AID.slice());aIdx=0;}
   var item=aList[aIdx++];
-  box.innerHTML=
-    '<div style="font-size:56px;margin-bottom:8px;">&#x1F916;</div>'+
-    '<p style="font-size:20px;font-weight:600;color:#333;margin:6px 10px;">'+item.q+'</p>';
+  box.innerHTML='';
+  var rDiv=document.createElement('div');
+  rDiv.style.cssText='font-size:52px;margin-bottom:8px;';
+  rDiv.innerHTML='&#x1F916;';
+  box.appendChild(rDiv);
+  var qDiv=document.createElement('p');
+  qDiv.style.cssText='font-size:18px;font-weight:600;color:#333;margin:6px 10px;text-align:center;';
+  qDiv.textContent=item.q;
+  box.appendChild(qDiv);
   var ag=document.createElement('div');
   ag.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;';
   for(var ai=0;ai<item.opts.length;ai++){
     (function(o,ci){
-      var b=document.createElement('button');
-      b.className='opt';
-      b.textContent=o;
-      b.onclick=function(){chkA(ci===item.a,this,item.explain);};
-      ag.appendChild(b);
+      var bt=document.createElement('button');
+      bt.className='opt';
+      bt.textContent=o;
+      bt.onclick=function(){chkA(ci===item.a,this,item.explain);};
+      ag.appendChild(bt);
     })(item.opts[ai],ai);
   }
   box.appendChild(ag);
@@ -544,16 +595,13 @@ function chkA(ok,btn,explain){
     btn.style.color='#fff';
     speakChipmunk('Correct! '+explain);
     addScore(10);
-    setTimeout(genA,2000);
+    setTimeout(genA,2200);
   } else {
     btn.style.background='#f44336';
     btn.style.color='#fff';
     wrongAns();
     setTimeout(function(){btn.style.background='';btn.style.color='';},800);
   }
-}
-function chk(ok,btn,explain){
-  explain?chkA(ok,btn,explain):chkR(ok,btn);
 }
 var DWDS=[
   {w:'Apple',e:'&#x1F34E;'},
@@ -581,7 +629,7 @@ function initDraw(){
     d.className='swatch';
     d.style.background=CLRS[ci];
     d.dataset.c=CLRS[ci];
-    d.onclick=pickColor;
+    d.addEventListener('click',pickColor);
     pal.appendChild(d);
   }
   var bsz=document.getElementById('bsz');
@@ -590,11 +638,11 @@ function initDraw(){
     var sizes=[4,8,14,20];
     for(var bi=0;bi<sizes.length;bi++){
       (function(sz){
-        var b=document.createElement('button');
-        b.className='dbtn';
-        b.onclick=function(){pickBrush(sz);};
-        b.style.cssText='width:'+(sz+10)+'px;height:'+(sz+10)+'px;border-radius:50%;background:#333;border:2px solid #666;cursor:pointer;margin:2px;';
-        bsz.appendChild(b);
+        var bt=document.createElement('button');
+        bt.className='dbtn';
+        bt.onclick=function(){brushSize=sz;};
+        bt.style.cssText='width:'+(sz+14)+'px;height:'+(sz+14)+'px;border-radius:50%;background:#333;border:2px solid #999;cursor:pointer;margin:2px;padding:0;';
+        bsz.appendChild(bt);
       })(sizes[bi]);
     }
   }
@@ -602,7 +650,7 @@ function initDraw(){
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
   canvas.width=canvas.offsetWidth||300;
-  canvas.height=canvas.offsetHeight||220;
+  canvas.height=220;
   ctx.fillStyle='#fff';
   ctx.fillRect(0,0,canvas.width,canvas.height);
   erasing=false;
@@ -610,12 +658,12 @@ function initDraw(){
   brushSize=8;
   var firstSwatch=pal.querySelector('.swatch');
   if(firstSwatch)firstSwatch.style.outline='3px solid #000';
-  canvas.onmousedown=function(e){drawing=true;var r=canvas.getBoundingClientRect();lastX=e.clientX-r.left;lastY=e.clientY-r.top;dot(ctx,lastX,lastY);};
-  canvas.onmousemove=function(e){if(!drawing)return;var r=canvas.getBoundingClientRect();var x=e.clientX-r.left;var y=e.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.onmousedown=function(ev){drawing=true;var r=canvas.getBoundingClientRect();lastX=ev.clientX-r.left;lastY=ev.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.onmousemove=function(ev){if(!drawing)return;var r=canvas.getBoundingClientRect();var x=ev.clientX-r.left;var y=ev.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
   canvas.onmouseup=function(){drawing=false;};
   canvas.onmouseleave=function(){drawing=false;};
-  canvas.ontouchstart=function(e){e.preventDefault();drawing=true;var r=canvas.getBoundingClientRect();var t=e.touches[0];lastX=t.clientX-r.left;lastY=t.clientY-r.top;dot(ctx,lastX,lastY);};
-  canvas.ontouchmove=function(e){e.preventDefault();if(!drawing)return;var r=canvas.getBoundingClientRect();var t=e.touches[0];var x=t.clientX-r.left;var y=t.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
+  canvas.ontouchstart=function(ev){ev.preventDefault();drawing=true;var r=canvas.getBoundingClientRect();var t=ev.touches[0];lastX=t.clientX-r.left;lastY=t.clientY-r.top;dot(ctx,lastX,lastY);};
+  canvas.ontouchmove=function(ev){ev.preventDefault();if(!drawing)return;var r=canvas.getBoundingClientRect();var t=ev.touches[0];var x=t.clientX-r.left;var y=t.clientY-r.top;dline(ctx,lastX,lastY,x,y);lastX=x;lastY=y;};
   canvas.ontouchend=function(){drawing=false;};
   newWord();
 }
@@ -634,15 +682,16 @@ function dline(ctx,x1,y1,x2,y2){
   ctx.lineCap='round';
   ctx.stroke();
 }
-function pickColor(el){
-  var e=el.target||el;
-  curColor=e.dataset.c||curColor;
+function pickColor(ev){
+  var el=ev.target||ev.currentTarget||ev;
+  curColor=el.dataset.c||curColor;
   erasing=false;
   var swatches=document.querySelectorAll('.swatch');
   for(var i=0;i<swatches.length;i++)swatches[i].style.outline='';
-  e.style.outline='3px solid #000';
+  el.style.outline='3px solid #000';
+  var ebtn=document.getElementById('ebtn');
+  if(ebtn)ebtn.style.background='';
 }
-function pickBrush(sz){brushSize=sz;}
 function toggleE(){
   erasing=!erasing;
   var btn=document.getElementById('ebtn');
@@ -664,27 +713,31 @@ function newWord(){
 }
 function sayWord(){
   var dwe=document.getElementById('dw');
-  if(dwe){var txt=dwe.textContent.trim().split(' ')[0];speakChipmunk('Draw a '+txt+'!');}
+  if(dwe){
+    var txt=dwe.textContent.trim().split(' ')[0];
+    speakChipmunk('Draw a '+txt+'!');
+  }
 }
 function showDone(){
-  var ids=['home','read','math','hist','ai','draw','done'];
+  var ids=['menu','reading','math','history','ai','drawing','done'];
   for(var i=0;i<ids.length;i++){
     var el=document.getElementById(ids[i]);
     if(el)el.style.display='none';
   }
-  document.getElementById('done').style.display='flex';
-  document.getElementById('ds').textContent=score+' '+starStr(streak);
+  var done=document.getElementById('done');
+  if(done)done.style.display='flex';
+  var ds=document.getElementById('ds');
+  if(ds)ds.textContent=score;
+  var dstars=document.getElementById('dstars');
+  if(dstars){
+    dstars.innerHTML='';
+    var n=Math.min(streak,10);
+    for(var s=0;s<n;s++)dstars.innerHTML+='&#x2B50;';
+  }
   confetti();
   speakChipmunk('Amazing job! You scored '+score+' points! You are a superstar!');
 }
-function starStr(n){
-  var s='';
-  for(var i=0;i<Math.min(n,10);i++)s+='&#x2B50;';
-  return s;
-}
 function confetti(){
-  var c=document.getElementById('done');
-  if(!c)return;
   var colors=['#e74c3c','#f39c12','#2ecc71','#3498db','#9b59b6','#e91e63','#1abc9c'];
   for(var i=0;i<40;i++){
     (function(idx){
@@ -694,13 +747,13 @@ function confetti(){
         d.style.background=colors[idx%colors.length];
         d.style.left=(Math.random()*100)+'vw';
         d.style.top='-20px';
-        c.appendChild(d);
-        var start=null;
+        document.body.appendChild(d);
+        var startTime=null;
         var speed=2+Math.random()*3;
         var drift=(Math.random()-0.5)*2;
         function fall(ts){
-          if(!start)start=ts;
-          var progress=(ts-start)*0.05*speed;
+          if(!startTime)startTime=ts;
+          var progress=(ts-startTime)*0.05*speed;
           d.style.top=progress+'vh';
           d.style.left=(parseFloat(d.style.left)+drift)+'px';
           if(progress<120)requestAnimationFrame(fall);
@@ -712,7 +765,8 @@ function confetti(){
   }
 }
 window.onload=function(){
-  document.getElementById('home').style.display='flex';
+  var m=document.getElementById('menu');
+  if(m)m.style.display='flex';
   speakChipmunk('Hi! I am Chipmunk! Let us learn together! Tap a subject to start!');
 };
 </script>
